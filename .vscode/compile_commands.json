@@ -1,0 +1,16 @@
+[
+{
+  "directory": "/Users/yuyue/repos/cs7gv3",
+  "arguments": ["/opt/homebrew/bin/ccache", "/usr/bin/xcrun", "-sdk", "macosx", "clang", "-c", "-Qunused-arguments", "-arch", "arm64", "-mmacosx-version-min=12.1", "-isysroot", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk", "-std=c++17", "-Icommon/include", "-I/opt/homebrew/Cellar/glew/2.2.0_1/include", "-I/opt/homebrew/Cellar/boost/1.76.0/include", "-Ishader/include", "-framework", "OpenGL", "-framework", "GLUT", "-framework", "Cocoa", "-o", "build/.objs/cs7gv3-shader-compile/macosx/arm64/release/shader/src/shader.cpp.o", "shader/src/shader.cpp"],
+  "file": "shader/src/shader.cpp"
+},
+{
+  "directory": "/Users/yuyue/repos/cs7gv3",
+  "arguments": ["/opt/homebrew/bin/ccache", "/usr/bin/xcrun", "-sdk", "macosx", "clang", "-c", "-Qunused-arguments", "-arch", "arm64", "-mmacosx-version-min=12.1", "-isysroot", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk", "-std=c++17", "-Icommon/include", "-I/opt/homebrew/Cellar/glew/2.2.0_1/include", "-I/opt/homebrew/Cellar/boost/1.76.0/include", "-Ishader/include", "-framework", "OpenGL", "-framework", "GLUT", "-framework", "Cocoa", "-o", "build/.objs/cs7gv3-shader-compile/macosx/arm64/release/shader/src/main.cpp.o", "shader/src/main.cpp"],
+  "file": "shader/src/main.cpp"
+},
+{
+  "directory": "/Users/yuyue/repos/cs7gv3",
+  "arguments": ["/opt/homebrew/bin/ccache", "/usr/bin/xcrun", "-sdk", "macosx", "clang", "-c", "-Qunused-arguments", "-arch", "arm64", "-mmacosx-version-min=12.1", "-isysroot", "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk", "-std=c++17", "-Icommon/include", "-I/opt/homebrew/Cellar/glew/2.2.0_1/include", "-I/opt/homebrew/Cellar/boost/1.76.0/include", "-Imain/include", "-framework", "OpenGL", "-framework", "GLUT", "-framework", "Cocoa", "-o", "build/.objs/cs7gv3-main/macosx/arm64/release/main/src/main.cpp.o", "main/src/main.cpp"],
+  "file": "main/src/main.cpp"
+}]
