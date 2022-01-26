@@ -9,6 +9,11 @@
 
 namespace shader {
 
+struct vbo_t {
+  opengl::vec3_t vertices[3];
+  opengl::vec4_t colors[3];
+};
+
 bool support_shader_binary();
 
 common::result_t<std::shared_ptr<std::string>>
@@ -24,6 +29,9 @@ compile_shaders(const std::vector<std::string> &glsl_files);
 
 common::result_t<GLuint>
 create_program(const std::vector<std::string> &glsl_files);
+
+GLuint vbo_gen(vbo_t vbo);
+void link_buf(GLuint program_id);
 
 } // namespace shader
 

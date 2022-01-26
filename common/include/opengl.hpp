@@ -18,14 +18,29 @@
 
 namespace opengl {
 
-struct w_size_t {
+struct vec3_t {
+  GLfloat _1;
+  GLfloat _2;
+  GLfloat _3;
+};
+
+struct vec4_t {
+  GLfloat _1;
+  GLfloat _2;
+  GLfloat _3;
+  GLfloat _4;
+};
+
+using color_t = vec4_t;
+
+struct win_size_t {
   int height;
   int width;
 };
 
 struct init_config_t {
   std::string mw_title;
-  w_size_t w_size;
+  win_size_t win_size;
   uint32_t display_mode;
   int argc;
   char **argv;

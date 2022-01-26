@@ -14,6 +14,14 @@
 
 #define defer(expr) common::_defer_t UNIQUE(_defer) = [&]() { expr; }
 
+#define CLS_OFFSET_BEG(class, member) ((size_t)(&(((class *)NULL)->member)))
+#define CLS_OFFSET_END(class, member)                                          \
+  ((size_t)(CLS_OFFSET_BEG(class, member)) + sizeof(class ::member))
+#define CLS_OFFSET_LEN(class, member) ((size_t)sizeof(class ::member))
+
+#define BASE_TYP(class) std::remove_all_extents<decltype(class)>::type
+#define SIZE_BY(class, ele) (sizeof(BASE_TYP(class)) / sizeof(ele))
+
 namespace common {
 
 struct none_t {};

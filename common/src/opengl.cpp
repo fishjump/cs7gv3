@@ -6,7 +6,7 @@ namespace {
 void init_glut(opengl::init_config_t &cfg) {
   glutInit(&cfg.argc, cfg.argv);
   glutInitDisplayMode(cfg.display_mode);
-  glutInitWindowSize(cfg.w_size.height, cfg.w_size.width);
+  glutInitWindowSize(cfg.win_size.height, cfg.win_size.width);
   glutCreateWindow(cfg.mw_title.c_str());
   glutDisplayFunc([]() {
     glClear(GL_COLOR_BUFFER_BIT);

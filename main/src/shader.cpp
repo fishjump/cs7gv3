@@ -205,3 +205,30 @@ shader::create_program(const std::vector<std::string> &glsl_files) {
 
   return {program_id, std::nullopt};
 }
+
+GLuint shader::vbo_gen(vbo_t vbo) {
+  GLuint VBO;
+  glGenBuffers(1, &VBO);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vbo_t), NULL, GL_STATIC_DRAW);
+
+  glBufferSubData(GL_ARRAY_BUFFER, CLS_OFFSET_BEG(vbo_t, vertices),
+                  CLS_OFFSET_LEN(vbo_t, vertices), vbo.vertices);
+  glBufferSubData(GL_ARRAY_BUFFER, CLS_OFFSET_BEG(vbo_t, colors),
+                  CLS_OFFSET_LEN(vbo_t, colors), vbo.colors);
+  return VBO;
+}
+
+void shader::link_buf(GLuint program_id) {
+  GLuint pos_id = glGetAttribLocation(program_id, "vPosition");
+  GLuint color_id = glGetAttribLocation(program_id, "vColor");
+
+  glEnableVertexAttribArray(pos_id);
+  glVertexAttribPointer(pos_id, SIZE_BY(vbo_t::vertices, GLfloat), GL_FLOAT,
+                        GL_FALSE, 0, (void *)(CLS_OFFSET_BEG(vbo_t, vertices)));
+
+  glEnableVertexAttribArray(color_id);
+  glVertexAttribPointer(color_id, SIZE_BY(vbo_t::colors, GLfloat), GL_FLOAT,
+                        GL_FALSE, 0, (void *)CLS_OFFSET_BEG(vbo_t, colors));
+}
