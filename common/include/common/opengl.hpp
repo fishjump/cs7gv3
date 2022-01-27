@@ -1,5 +1,5 @@
-#ifndef OPENGL_H
-#define OPENGL_H
+#ifndef COMMON_OPENGL_H
+#define COMMON_OPENGL_H
 
 #ifdef __APPLE__
 
@@ -16,7 +16,9 @@
 
 #endif
 
-namespace opengl {
+#include <common/common.hpp>
+
+namespace gl {
 
 struct vec3_t {
   GLfloat _1;
@@ -29,13 +31,6 @@ struct vec4_t {
   GLfloat _2;
   GLfloat _3;
   GLfloat _4;
-};
-
-using color_t = vec4_t;
-
-struct triangle_t {
-  vec3_t positions[3];
-  vec4_t colors[3];
 };
 
 struct win_size_t {
@@ -53,6 +48,6 @@ struct init_config_t {
 
 common::result_t<> init(init_config_t &cfg);
 
-} // namespace opengl
+} // namespace gl
 
-#endif // OPENGL_H
+#endif // COMMON_OPENGL_H

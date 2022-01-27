@@ -1,9 +1,8 @@
-#include <common.hpp>
-#include <opengl.hpp>
+#include <common/opengl.hpp>
 
 namespace {
 
-void init_glut(opengl::init_config_t &cfg) {
+void init_glut(gl::init_config_t &cfg) {
   glutInit(&cfg.argc, cfg.argv);
   glutInitDisplayMode(cfg.display_mode);
   glutInitWindowSize(cfg.win_size.height, cfg.win_size.width);
@@ -28,7 +27,7 @@ common::result_t<> init_glew() {
 
 } // namespace
 
-common::result_t<> opengl::init(init_config_t &cfg) {
+common::result_t<> gl::init(init_config_t &cfg) {
   init_glut(cfg);
   auto res = init_glew();
   if (res.err != std::nullopt) {

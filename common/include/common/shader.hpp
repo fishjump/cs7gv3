@@ -1,14 +1,13 @@
-#ifndef CS7GV3_SHADER_HPP
-#define CS7GV3_SHADER_HPP
+#ifndef COMMON_SHADER_HPP
+#define COMMON_SHADER_HPP
 
 #include <array>
 #include <memory>
 #include <vector>
 
-#include <common.hpp>
-#include <opengl.hpp>
+#include <common/common.hpp>
 
-namespace cs7gv3 {
+namespace gl {
 
 struct shader_id_t final {
   GLuint vert_id;
@@ -30,6 +29,6 @@ private:
   shader_id_t id = {0, 0};
 };
 
-} // namespace cs7gv3
+} // namespace gl
 
-#endif // CS7GV3_SHADER_HPP
+#endif // COMMON_SHADER_HPP

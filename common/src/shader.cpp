@@ -3,8 +3,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include <common.hpp>
-#include <shader.hpp>
+#include <common/opengl.hpp>
+#include <common/shader.hpp>
 
 #define EXT_LIST                                                               \
   EXT("vert", GL_VERTEX_SHADER)                                                \
@@ -37,7 +37,7 @@ create_program(const std::vector<std::string> &glsl_files);
 
 } // namespace
 
-cs7gv3::shader_t::shader_t(const std::string &vert_glsl,
+gl::shader_t::shader_t(const std::string &vert_glsl,
                            const std::string &frag_glsl, bool is_file) {
   std::function compile = [](const std::string &glsl, const GLenum shader_type)
       -> common::result_t<GLuint> { return compile_shader(glsl, shader_type); };
@@ -68,7 +68,7 @@ cs7gv3::shader_t::shader_t(const std::string &vert_glsl,
   };
 }
 
-cs7gv3::shader_t::compile_ret_t cs7gv3::shader_t::compile() {
+gl::shader_t::compile_ret_t gl::shader_t::compile() {
   if (_compile == nullptr) {
     constexpr auto err = "null _compile func ptr";
     LOG_ERR(err);
@@ -85,7 +85,7 @@ cs7gv3::shader_t::compile_ret_t cs7gv3::shader_t::compile() {
   return res;
 }
 
-void cs7gv3::shader_t::attach_to_program(GLuint program_id) {
+void gl::shader_t::attach_to_program(GLuint program_id) {
   glAttachShader(program_id, id.frag_id);
   glAttachShader(program_id, id.vert_id);
 }

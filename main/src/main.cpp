@@ -1,21 +1,26 @@
+#include <array>
 #include <iostream>
 #include <optional>
 
-#include <boost/filesystem.hpp>
+#include <boost/pfr.hpp>
 #include <boost/program_options.hpp>
 
 #include <common.hpp>
-#include <program.hpp>
 
 #define LOG_LEVEL LOG_LEVEL_INFO
 
 namespace {
 
+namespace b_pfr = boost::pfr;
 namespace b_opt = boost::program_options;
-namespace b_fs = boost::filesystem;
 
 std::optional<std::string> vert = std::nullopt;
 std::optional<std::string> frag = std::nullopt;
+
+struct triangle_t {
+  std::array<gl::vec3_t, 3> positions;
+  std::array<gl::vec4_t, 3> colors;
+};
 
 void parse_opts(int argc, char *argv[]) {
   b_opt::options_description desc("all options");
@@ -45,35 +50,37 @@ void parse_opts(int argc, char *argv[]) {
 int main(int argc, char **argv) {
   parse_opts(argc, argv);
 
-  opengl::init_config_t cfg = {.argc = argc,
+  gl::init_config_t cfg = {.argc = argc,
                                .argv = argv,
                                .mw_title = "Hello Triangle",
                                .win_size = {800, 600},
                                .display_mode = GLUT_3_2_CORE_PROFILE |
                                                GLUT_DOUBLE | GLUT_RGB};
-  auto res_0 = opengl::init(cfg);
+  auto res_0 = gl::init(cfg);
   if (res_0.err != std::nullopt) {
     LOG_ERR(res_0.err.value());
     return 1;
   }
 
-  cs7gv3::program_t program({vert.value_or(""), frag.value_or(""), true});
+  gl::program_t program({vert.value(), frag.value(), true});
   auto res_1 = program.build();
   if (res_1.err != std::nullopt) {
     LOG_ERR(res_1.err.value());
     return 1;
   }
 
-  opengl::triangle_t triangle = {.positions = {{1.0f, 1.0f, 0.0f},
-                                               {1.0f, -1.0f, 0.0f},
-                                               {-1.0f, -1.0f, 0.0f}},
-                                 .colors = {{0.0f, 1.0f, 0.0f, 1.0f},
-                                            {1.0f, 0.0f, 0.0f, 1.0f},
-                                            {0.0f, 0.0f, 1.0f, 1.0f}}};
+  triangle_t triangle = {.positions = {{{1.0f, 1.0f, 0.0f},
+                                        {1.0f, -1.0f, 0.0f},
+                                        {-1.0f, -1.0f, 0.0f}}},
+                         .colors = {{{0.0f, 1.0f, 0.0f, 1.0f},
+                                     {1.0f, 0.0f, 0.0f, 1.0f},
+                                     {0.0f, 0.0f, 1.0f, 1.0f}}}};
+
   program.create_vbo(triangle);
-  program.use_vbo(triangle);
+  program.use_vbo(triangle, {"vPosition", "vColor"});
   program.use();
 
   glutMainLoop();
+
   return 0;
 }

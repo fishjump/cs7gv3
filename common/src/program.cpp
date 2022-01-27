@@ -1,4 +1,4 @@
-#include <program.hpp>
+#include <common/program.hpp>
 
 namespace {
 
@@ -12,9 +12,9 @@ GLuint create_vao() {
 
 } // namespace
 
-cs7gv3::program_t::program_t(const shader_t &shader) : shader(shader) {}
+gl::program_t::program_t(const shader_t &shader) : shader(shader) {}
 
-common::result_t<GLuint> cs7gv3::program_t::create() {
+common::result_t<GLuint> gl::program_t::create() {
   program_id = glCreateProgram();
   if (program_id == 0) {
     constexpr auto err = "error creating shader program";
@@ -25,7 +25,7 @@ common::result_t<GLuint> cs7gv3::program_t::create() {
   return {program_id, std::nullopt};
 }
 
-common::result_t<> cs7gv3::program_t::compile() {
+common::result_t<> gl::program_t::compile() {
   auto res = shader.compile();
   if (res.err != std::nullopt) {
     LOG_ERR(res.err.value());
@@ -37,7 +37,7 @@ common::result_t<> cs7gv3::program_t::compile() {
   return {common::none_v, std::nullopt};
 }
 
-common::result_t<> cs7gv3::program_t::link() {
+common::result_t<> gl::program_t::link() {
   glLinkProgram(program_id);
 
   GLint success = 0;
@@ -53,7 +53,7 @@ common::result_t<> cs7gv3::program_t::link() {
   return {common::none_v, std::nullopt};
 }
 
-common::result_t<> cs7gv3::program_t::validate() {
+common::result_t<> gl::program_t::validate() {
   glValidateProgram(program_id);
 
   GLint success = 0;
@@ -69,7 +69,7 @@ common::result_t<> cs7gv3::program_t::validate() {
   return {common::none_v, std::nullopt};
 }
 
-common::result_t<GLuint> cs7gv3::program_t::build() {
+common::result_t<GLuint> gl::program_t::build() {
   vao_id = create_vao();
 
   auto res_0 = create();
@@ -99,36 +99,4 @@ common::result_t<GLuint> cs7gv3::program_t::build() {
   return {program_id, std::nullopt};
 }
 
-common::result_t<> cs7gv3::program_t::create_vbo(opengl::triangle_t vbo) {
-  GLuint VBO;
-  glGenBuffers(1, &VBO);
-
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(opengl::triangle_t), NULL,
-               GL_STATIC_DRAW);
-
-  glBufferSubData(GL_ARRAY_BUFFER,
-                  CLS_OFFSET_BEG(opengl::triangle_t, positions),
-                  CLS_OFFSET_LEN(opengl::triangle_t, positions), vbo.positions);
-  glBufferSubData(GL_ARRAY_BUFFER, CLS_OFFSET_BEG(opengl::triangle_t, colors),
-                  CLS_OFFSET_LEN(opengl::triangle_t, colors), vbo.colors);
-  return {};
-}
-
-common::result_t<> cs7gv3::program_t::use_vbo(opengl::triangle_t triangle) {
-  GLuint pos_id = glGetAttribLocation(program_id, "vPosition");
-  GLuint color_id = glGetAttribLocation(program_id, "vColor");
-
-  glEnableVertexAttribArray(pos_id);
-  glVertexAttribPointer(
-      pos_id, 3, GL_FLOAT, GL_FALSE, 0,
-      (void *)(CLS_OFFSET_BEG(opengl::triangle_t, positions)));
-
-  glEnableVertexAttribArray(color_id);
-  glVertexAttribPointer(color_id, 4, GL_FLOAT, GL_FALSE, 0,
-                        (void *)CLS_OFFSET_BEG(opengl::triangle_t, colors));
-
-  return {};
-}
-
-void cs7gv3::program_t::use() { glUseProgram(program_id); }
+void gl::program_t::use() { glUseProgram(program_id); }

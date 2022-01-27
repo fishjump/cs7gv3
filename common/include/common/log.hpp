@@ -1,8 +1,10 @@
-#ifndef LOG_HPP
-#define LOG_HPP
+#ifndef COMMON_LOG_HPP
+#define COMMON_LOG_HPP
 
 #include <iostream>
 #include <sstream>
+
+#include <common/common.hpp>
 
 #define LOG_LEVEL_NO_LOG 0
 #define LOG_LEVEL_ERR 1
@@ -49,4 +51,4 @@
     LOG(LOG_LEVEL_DEBUG, LOG_DEBUG_STR(__VA_ARGS__));                          \
   } while (false);
 
-#endif // LOG_HPP
+#endif // COMMON_LOG_HPP
