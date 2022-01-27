@@ -18,7 +18,7 @@ if is_plat("macosx") then
   add_frameworks("OpenGL", "GLUT", "Cocoa")
 end
 
-target("cs7gv3-main")
+target("cs7gv3")
   set_kind("binary")
   add_files("main/src/**.cpp")
   add_includedirs("main/include")

@@ -5,7 +5,7 @@
 #include <boost/program_options.hpp>
 
 #include <common.hpp>
-#include <shader.hpp>
+#include <program.hpp>
 
 #define LOG_LEVEL LOG_LEVEL_INFO
 
@@ -14,12 +14,13 @@ namespace {
 namespace b_opt = boost::program_options;
 namespace b_fs = boost::filesystem;
 
-std::optional<std::string> directory = std::nullopt;
+std::optional<std::string> vert = std::nullopt;
+std::optional<std::string> frag = std::nullopt;
 
 void parse_opts(int argc, char *argv[]) {
   b_opt::options_description desc("all options");
-  desc.add_options()("help,h", "")("dir,d", b_opt::value<std::string>(),
-                                   "shaders' directory");
+  desc.add_options()("help,h", "")("vert,v", b_opt::value<std::string>())(
+      "frag,f", b_opt::value<std::string>());
 
   b_opt::variables_map vm;
   b_opt::store(b_opt::parse_command_line(argc, argv, desc), vm);
@@ -30,8 +31,12 @@ void parse_opts(int argc, char *argv[]) {
     exit(0);
   }
 
-  if (vm.count("dir")) {
-    directory = vm["dir"].as<std::string>();
+  if (vm.count("vert")) {
+    vert = vm["vert"].as<std::string>();
+  }
+
+  if (vm.count("frag")) {
+    frag = vm["frag"].as<std::string>();
   }
 }
 
@@ -46,38 +51,28 @@ int main(int argc, char **argv) {
                                .win_size = {800, 600},
                                .display_mode = GLUT_3_2_CORE_PROFILE |
                                                GLUT_DOUBLE | GLUT_RGB};
-  auto res = opengl::init(cfg);
-  if (res.err != std::nullopt) {
-    LOG_ERR(res.err.value());
+  auto res_0 = opengl::init(cfg);
+  if (res_0.err != std::nullopt) {
+    LOG_ERR(res_0.err.value());
     return 1;
   }
 
-  std::vector<std::string> glsl_files;
-  for (b_fs::directory_iterator iter(directory.value_or("."));
-       iter != b_fs::end(iter); iter++) {
-    if (b_fs::is_regular_file(*iter)) {
-      glsl_files.push_back(iter->path().string());
-    }
-  }
-
-  auto res_1 = shader::create_program(glsl_files);
+  cs7gv3::program_t program({vert.value_or(""), frag.value_or(""), true});
+  auto res_1 = program.build();
   if (res_1.err != std::nullopt) {
     LOG_ERR(res_1.err.value());
     return 1;
   }
-  GLuint shader_pid = res_1.result;
 
-  glUseProgram(shader_pid);
-
-  shader::vbo_t vbo = {.vertices = {{-1.0f, -1.0f, 0.0f},
-                                    {1.0f, -1.0f, 0.0f},
-                                    {0.0f, 1.0f, 0.0f}},
-                       .colors = {{0.0f, 1.0f, 0.0f, 1.0f},
-                                  {1.0f, 0.0f, 0.0f, 1.0f},
-                                  {0.0f, 0.0f, 1.0f, 1.0f}}};
-
-  shader::vbo_gen(vbo);
-  shader::link_buf(shader_pid);
+  opengl::triangle_t triangle = {.positions = {{1.0f, 1.0f, 0.0f},
+                                               {1.0f, -1.0f, 0.0f},
+                                               {-1.0f, -1.0f, 0.0f}},
+                                 .colors = {{0.0f, 1.0f, 0.0f, 1.0f},
+                                            {1.0f, 0.0f, 0.0f, 1.0f},
+                                            {0.0f, 0.0f, 1.0f, 1.0f}}};
+  program.create_vbo(triangle);
+  program.use_vbo(triangle);
+  program.use();
 
   glutMainLoop();
   return 0;

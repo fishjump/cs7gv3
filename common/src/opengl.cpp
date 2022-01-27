@@ -15,7 +15,7 @@ void init_glut(opengl::init_config_t &cfg) {
   });
 }
 
-common::result_t<common::none_t> init_glew() {
+common::result_t<> init_glew() {
   GLenum res = glewInit();
   if (res != GLEW_OK) {
     std::string err = (const char *)glewGetErrorString(res);
@@ -28,7 +28,7 @@ common::result_t<common::none_t> init_glew() {
 
 } // namespace
 
-common::result_t<common::none_t> opengl::init(init_config_t &cfg) {
+common::result_t<> opengl::init(init_config_t &cfg) {
   init_glut(cfg);
   auto res = init_glew();
   if (res.err != std::nullopt) {

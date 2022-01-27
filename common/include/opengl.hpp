@@ -33,6 +33,11 @@ struct vec4_t {
 
 using color_t = vec4_t;
 
+struct triangle_t {
+  vec3_t positions[3];
+  vec4_t colors[3];
+};
+
 struct win_size_t {
   int height;
   int width;
@@ -46,7 +51,7 @@ struct init_config_t {
   char **argv;
 };
 
-common::result_t<common::none_t> init(init_config_t &cfg);
+common::result_t<> init(init_config_t &cfg);
 
 } // namespace opengl
 

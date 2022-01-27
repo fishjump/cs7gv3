@@ -25,9 +25,9 @@
 namespace common {
 
 struct none_t {};
-inline constexpr none_t none_v;
+constexpr none_t none_v;
 
-template <class T> struct result_t {
+template <class T = none_t> struct result_t {
   T result;
   std::optional<std::string> err;
 };

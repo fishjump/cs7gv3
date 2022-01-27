@@ -1,38 +1,35 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef CS7GV3_SHADER_HPP
+#define CS7GV3_SHADER_HPP
 
+#include <array>
 #include <memory>
 #include <vector>
 
 #include <common.hpp>
 #include <opengl.hpp>
 
-namespace shader {
+namespace cs7gv3 {
 
-struct vbo_t {
-  opengl::vec3_t vertices[3];
-  opengl::vec4_t colors[3];
+struct shader_id_t final {
+  GLuint vert_id;
+  GLuint frag_id;
 };
 
-bool support_shader_binary();
+struct shader_t final {
+  using compile_ret_t = common::result_t<shader_id_t>;
+  using compile_func_t = compile_ret_t();
 
-common::result_t<std::shared_ptr<std::string>>
-load_shader(const std::string &file);
+  shader_t(const std::string &vert_glsl, const std::string &frag_glsl,
+           bool is_file);
 
-common::result_t<GLuint> compile_shader(const std::string &glsl_file);
-common::result_t<GLuint> compile_shader(const char *glsl_code,
-                                        const GLenum shader_type);
-common::result_t<GLuint> compile_shader(const std::string &glsl_code,
-                                        const GLenum shader_type);
-common::result_t<std::vector<GLuint>>
-compile_shaders(const std::vector<std::string> &glsl_files);
+  compile_ret_t compile();
+  void attach_to_program(GLuint program_id);
 
-common::result_t<GLuint>
-create_program(const std::vector<std::string> &glsl_files);
+private:
+  std::function<compile_func_t> _compile = nullptr;
+  shader_id_t id = {0, 0};
+};
 
-GLuint vbo_gen(vbo_t vbo);
-void link_buf(GLuint program_id);
+} // namespace cs7gv3
 
-} // namespace shader
-
-#endif // SHADER_H
+#endif // CS7GV3_SHADER_HPP
