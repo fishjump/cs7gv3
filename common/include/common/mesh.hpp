@@ -42,7 +42,7 @@ template <class T> void gl::mesh_t::use_vbo(const T &t) {
                     sizeof(field), field.data());
   });
 
-  boost::pfr::for_each_field(t, [&t, this](const auto &field, int index) {
+  boost::pfr::for_each_field(t, [&t](const auto &field, int index) {
     glEnableVertexAttribArray(index);
     glVertexAttribPointer(
         index, sizeof(common::value_type_t<decltype(field)>) / sizeof(GL_FLOAT),

@@ -29,11 +29,6 @@ common::result_t<GLuint> compile_shader(const char *glsl_code,
                                         const GLenum shader_type);
 inline common::result_t<GLuint> compile_shader(const std::string &glsl_code,
                                                const GLenum shader_type);
-inline common::result_t<std::vector<GLuint>>
-compile_shaders(const std::vector<std::string> &glsl_files);
-
-inline common::result_t<GLuint>
-create_program(const std::vector<std::string> &glsl_files);
 
 } // namespace
 
