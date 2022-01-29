@@ -1,4 +1,4 @@
-#include <common/opengl.hpp>
+#include <gl/gl.hpp>
 
 void gl::init() {
   glfwInit();

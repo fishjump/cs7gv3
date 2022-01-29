@@ -3,8 +3,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include <common/opengl.hpp>
-#include <common/shader.hpp>
+#include <gl/gl.hpp>
+#include <gl/shader.hpp>
 
 #define EXT_LIST                                                               \
   EXT("vert", GL_VERTEX_SHADER)                                                \

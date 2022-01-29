@@ -1,11 +1,12 @@
-#ifndef COMMON_SHADER_HPP
-#define COMMON_SHADER_HPP
+#ifndef GL_SHADER_HPP
+#define GL_SHADER_HPP
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <vector>
 
-#include <common/common.hpp>
+#include <common.hpp>
 
 namespace gl {
 
@@ -42,4 +43,4 @@ private:
 
 } // namespace gl
 
-#endif // COMMON_SHADER_HPP
+#endif // GL_SHADER_HPP

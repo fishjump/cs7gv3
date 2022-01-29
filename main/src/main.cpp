@@ -4,31 +4,30 @@
 #include <vector>
 
 #include <common.hpp>
+#include <gl.hpp>
 #include <program_options.hpp>
 
 namespace {
 
 struct triangle_t {
-  std::array<gl::vec3_t, 3> positions;
-  std::array<gl::vec4_t, 3> colors;
+  std::array<glm::vec3, 3> positions;
+  std::array<glm::vec4, 3> colors;
 };
 
-triangle_t triangle1 = {.positions = {{{1.0f, 1.0f, 0.0f},
-                                       {1.0f, -1.0f, 0.0f},
-                                       {-1.0f, -1.0f, 0.0f}}},
-                        .colors = {{{0.0f, 1.0f, 0.0f, 1.0f},
-                                    {1.0f, 0.0f, 0.0f, 1.0f},
-                                    {0.0f, 0.0f, 1.0f, 1.0f}}}};
+std::vector<gl::vertex_t> triangle1 = {
+    {.position = {.5f, .5f, 0.0f}, .color = {0.0f, 1.0f, 0.0f, 1.0f}},
+    {.position = {.5f, -.5f, 0.0f}, .color = {1.0f, 0.0f, 0.0f, 1.0f}},
+    {.position = {-.5f, -.5f, 0.0f}, .color = {0.0f, 0.0f, 1.0f, 1.0f}},
+};
 
-triangle_t triangle2 = {.positions = {{{1.0f, 1.0f, 0.0f},
-                                       {-1.0f, 1.0f, 0.0f},
-                                       {-1.0f, -1.0f, 0.0f}}},
-                        .colors = {{{0.0f, 1.0f, 0.0f, 1.0f},
-                                    {1.0f, 0.0f, 0.0f, 1.0f},
-                                    {0.0f, 0.0f, 1.0f, 1.0f}}}};
+std::vector<gl::vertex_t> triangle2 = {
+    {.position = {1.0f, 1.0f, 0.0f}, .color = {0.0f, 1.0f, 0.0f, 1.0f}},
+    {.position = {-1.0f, 1.0f, 0.0f}, .color = {1.0f, 0.0f, 0.0f, 1.0f}},
+    {.position = {-1.0f, -1.0f, 0.0f}, .color = {0.0f, 0.0f, 1.0f, 1.0f}},
+};
 
 std::vector<gl::shader_t> shaders;
-std::vector<gl::mesh_t> meshs;
+std::vector<gl::mesh_t> meshes;
 
 } // namespace
 
@@ -62,9 +61,7 @@ int main(int argc, char **argv) {
   }
 
   // create shaders
-  for (int i = 0; i < 2; i++) {
-    shaders.push_back(gl::shader_t(opts.vert.value(), opts.frag.value(), true));
-  }
+  shaders.push_back(gl::shader_t(opts.vert.value(), opts.frag.value(), true));
 
   // build shaders
   for (auto &shader : shaders) {
@@ -75,20 +72,14 @@ int main(int argc, char **argv) {
     }
   }
 
-  // create meshs
-  for (const auto &shader : shaders) {
-    meshs.push_back({shader});
-  }
-
-  // set buffers
-  meshs[0].use_vbo(triangle1);
-  meshs[1].use_vbo(triangle2);
+  // create meshes
+  meshes.push_back({triangle1, {0u, 1u, 2u}, {}});
+  meshes.push_back({triangle2, {0u, 1u, 2u}, {}});
 
   while (!glfwWindowShouldClose(window)) {
     glClear(GL_COLOR_BUFFER_BIT);
-
-    for (const auto &mesh : meshs) {
-      auto res = mesh.draw();
+    for (int i = 0; i < meshes.size(); i++) {
+      auto res = meshes[i].draw(shaders[0]);
       if (res.err != std::nullopt) {
         LOG_ERR(res.err.value());
         return 1;
