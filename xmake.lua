@@ -1,4 +1,5 @@
 set_languages("c17", "cxx17")
+set_warnings("all", "error")
 
 add_includedirs("common/include")
 add_files("common/src/**.cpp", "common/src/**.c")
