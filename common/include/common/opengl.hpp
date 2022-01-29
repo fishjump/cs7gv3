@@ -3,9 +3,10 @@
 
 #ifdef __APPLE__
 
-#include <GL/glew.h>
-#include <GLUT/glut.h>
-#include <OpenGL/gl3.h>
+#include <glad/glad.h>
+
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #elif __linux__
 
@@ -46,7 +47,7 @@ struct init_config_t {
   char **argv;
 };
 
-common::result_t<> init(init_config_t &cfg);
+void init();
 
 } // namespace gl
 

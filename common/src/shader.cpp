@@ -37,8 +37,11 @@ create_program(const std::vector<std::string> &glsl_files);
 
 } // namespace
 
+const gl::shader_id_t &gl::shader_t::shader_id() const { return _shader_id; }
+GLuint gl::shader_t::program_id() const { return _program_id; }
+
 gl::shader_t::shader_t(const std::string &vert_glsl,
-                           const std::string &frag_glsl, bool is_file) {
+                       const std::string &frag_glsl, bool is_file) {
   std::function compile = [](const std::string &glsl, const GLenum shader_type)
       -> common::result_t<GLuint> { return compile_shader(glsl, shader_type); };
 
@@ -49,7 +52,8 @@ gl::shader_t::shader_t(const std::string &vert_glsl,
     };
   }
 
-  _compile = [vert_glsl, frag_glsl, compile]() -> compile_ret_t {
+  _compile = [vert_glsl, frag_glsl,
+              compile]() -> common::result_t<shader_id_t> {
     auto res = compile(vert_glsl, GL_VERTEX_SHADER);
     if (res.err != std::nullopt) {
       LOG_ERR(res.err.value());
@@ -68,7 +72,52 @@ gl::shader_t::shader_t(const std::string &vert_glsl,
   };
 }
 
-gl::shader_t::compile_ret_t gl::shader_t::compile() {
+common::result_t<GLuint> gl::shader_t::build() {
+  auto res_0 = create();
+  if (res_0.err != std::nullopt) {
+    LOG_ERR(res_0.err.value());
+    return {0, res_0.err};
+  }
+
+  auto res_1 = compile();
+  if (res_1.err != std::nullopt) {
+    LOG_ERR(res_1.err.value());
+    return {0, res_1.err};
+  }
+
+  auto res_2 = link();
+  if (res_2.err != std::nullopt) {
+    LOG_ERR(res_2.err.value());
+    return {0, res_2.err};
+  }
+
+  return {_program_id, std::nullopt};
+}
+
+common::result_t<> gl::shader_t::use() const {
+  auto res = validate();
+  if (res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    return {common::none_v, res.err};
+  }
+
+  glUseProgram(_program_id);
+
+  return {common::none_v, std::nullopt};
+}
+
+common::result_t<GLuint> gl::shader_t::create() {
+  _program_id = glCreateProgram();
+  if (_program_id == 0) {
+    constexpr auto err = "error creating shader program";
+    LOG_ERR(err);
+    return {0, err};
+  }
+
+  return {_program_id, std::nullopt};
+}
+
+common::result_t<gl::shader_id_t> gl::shader_t::compile() {
   if (_compile == nullptr) {
     constexpr auto err = "null _compile func ptr";
     LOG_ERR(err);
@@ -80,14 +129,48 @@ gl::shader_t::compile_ret_t gl::shader_t::compile() {
     LOG_ERR(res.err.value());
     return res;
   }
-  id = res.result;
+  _shader_id = res.result;
+
+  attach_to_program();
 
   return res;
 }
 
-void gl::shader_t::attach_to_program(GLuint program_id) {
-  glAttachShader(program_id, id.frag_id);
-  glAttachShader(program_id, id.vert_id);
+common::result_t<> gl::shader_t::link() {
+  glLinkProgram(_program_id);
+
+  GLint success = 0;
+  glGetProgramiv(_program_id, GL_LINK_STATUS, &success);
+  if (!success) {
+    GLchar err_log[1024] = {'\0'};
+    glGetProgramInfoLog(_program_id, sizeof(err_log), NULL, err_log);
+    auto err = common::make_str("Error linking shader program: ", err_log);
+    LOG_ERR(err);
+    return {common::none_v, err};
+  }
+
+  return {common::none_v, std::nullopt};
+}
+
+common::result_t<> gl::shader_t::validate() const {
+  glValidateProgram(_program_id);
+
+  GLint success = 0;
+  GLchar err_log[1024] = {'\0'};
+  glGetProgramiv(_program_id, GL_VALIDATE_STATUS, &success);
+  if (!success) {
+    glGetProgramInfoLog(_program_id, sizeof(err_log), NULL, err_log);
+    auto err = common::make_str("Invalid shader program: ", err_log);
+    LOG_ERR(err);
+    return {common::none_v, err};
+  }
+
+  return {common::none_v, std::nullopt};
+}
+
+void gl::shader_t::attach_to_program() {
+  glAttachShader(_program_id, _shader_id.frag_id);
+  glAttachShader(_program_id, _shader_id.vert_id);
 }
 
 /// internal func impl

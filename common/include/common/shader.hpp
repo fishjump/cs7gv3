@@ -14,19 +14,30 @@ struct shader_id_t final {
   GLuint frag_id;
 };
 
-struct shader_t final {
-  using compile_ret_t = common::result_t<shader_id_t>;
-  using compile_func_t = compile_ret_t();
-
+class shader_t final {
+public:
   shader_t(const std::string &vert_glsl, const std::string &frag_glsl,
            bool is_file);
 
-  compile_ret_t compile();
-  void attach_to_program(GLuint program_id);
+  common::result_t<GLuint> build();
+  common::result_t<> use() const;
+
+  const shader_id_t &shader_id() const;
+  GLuint program_id() const;
+  GLuint vao() const;
 
 private:
+  using compile_func_t = common::result_t<shader_id_t>();
+
+  common::result_t<GLuint> create();
+  common::result_t<shader_id_t> compile();
+  common::result_t<> link();
+  common::result_t<> validate() const;
+  void attach_to_program();
+
   std::function<compile_func_t> _compile = nullptr;
-  shader_id_t id = {0, 0};
+  shader_id_t _shader_id = {0, 0};
+  GLuint _program_id = 0;
 };
 
 } // namespace gl

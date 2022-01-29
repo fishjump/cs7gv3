@@ -78,6 +78,9 @@
     "typeindex": "cpp",
     "variant": "cpp",
     "*.ipp": "cpp",
-    "__functional_03": "cpp"
+    "__functional_03": "cpp",
+    "random": "cpp",
+    "unordered_set": "cpp",
+    "valarray": "cpp"
   }
 }
