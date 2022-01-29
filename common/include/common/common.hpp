@@ -9,6 +9,7 @@
 
 #include <common/common.hpp>
 #include <common/log.hpp>
+#include <gl/gl.hpp>
 
 #define __MERGE(x, y) x_##y
 #define _MERGE(x, y) __MERGE(x, y)
@@ -17,6 +18,20 @@
 #define defer(expr) common::_defer_t UNIQUE(_defer) = [&]() { expr; }
 
 namespace common {
+
+template <class> inline constexpr bool dependent_false_v = false;
+
+template <class T, int _sz> struct is_glm_vec : public std::false_type {};
+template <class T, int _sz, glm::qualifier Q>
+struct is_glm_vec<glm::vec<_sz, T, Q>, _sz> : public std::true_type {};
+template <class T, int _sz>
+inline constexpr bool is_glm_vec_v = is_glm_vec<T, _sz>::value;
+
+template <class T, int _sz> struct is_glm_mat : public std::false_type {};
+template <class T, int _sz, glm::qualifier Q>
+struct is_glm_mat<glm::mat<_sz, _sz, T, Q>, _sz> : public std::true_type {};
+template <class T, int _sz>
+inline constexpr bool is_glm_mat_v = is_glm_mat<T, _sz>::value;
 
 struct none_t {};
 constexpr none_t none_v;

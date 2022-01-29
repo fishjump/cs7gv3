@@ -36,16 +36,28 @@ void gl::mesh_t::init() {
   });
 }
 
-common::result_t<> gl::mesh_t::draw(const shader_t &shader) const {
+void gl::mesh_t::draw(const shader_t &shader) const {
+  uint32_t diffuseNr = 1, specularNr = 1, normalNr = 1, heightNr = 1;
+  for (size_t i = 0; i < _textures.size(); i++) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    std::string number = "", name = _textures[i].type;
+    if (name == "texture_diffuse") {
+      number = std::to_string(diffuseNr++);
+    } else if (name == "texture_specular") {
+      number = std::to_string(specularNr++);
+    } else if (name == "texture_normal") {
+      number = std::to_string(normalNr++);
+    } else if (name == "texture_height") {
+      number = std::to_string(heightNr++);
+    }
+
+    glUniform1i(
+        glGetUniformLocation(shader.program_id(), (name + number).c_str()), i);
+    glBindTexture(GL_TEXTURE_2D, _textures[i].id);
+  }
+
   glBindVertexArray(_vao);
   defer(glBindVertexArray(NULL));
 
-  auto res = shader.use();
-  if (res.err != std::nullopt) {
-    LOG_ERR(res.err.value());
-    return {common::none_v, res.err};
-  }
-  glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
-
-  return {common::none_v, std::nullopt};
+  glDrawElements(GL_TRIANGLES, (uint32_t)_indices.size(), GL_UNSIGNED_INT, 0);
 }

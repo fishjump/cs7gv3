@@ -17,13 +17,12 @@ constexpr size_t MAX_BONE_INFLUENCE = 4;
 
 struct vertex_t {
   glm::vec3 position;
-  glm::vec4 color;
-  // glm::vec2 texture_coordinate;
-  // glm::vec3 tangent;
-  // glm::vec3 bitangent;
-  // glm::vec3 normal;
-  // std::array<int, MAX_BONE_INFLUENCE> bone_ids;
-  // std::array<float, MAX_BONE_INFLUENCE> bone_weights;
+  glm::vec2 texture_coordinate;
+  glm::vec3 tangent;
+  glm::vec3 bitangent;
+  glm::vec3 normal;
+  std::array<int, MAX_BONE_INFLUENCE> bone_ids;
+  std::array<float, MAX_BONE_INFLUENCE> bone_weights;
 };
 
 struct texture_t {
@@ -38,7 +37,7 @@ public:
          const std::vector<uint32_t> &indices,
          const std::vector<texture_t> &textures);
 
-  common::result_t<> draw(const shader_t &shader) const;
+  void draw(const shader_t &shader) const;
 
 private:
   GLuint _vao = 0;

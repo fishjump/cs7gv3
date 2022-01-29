@@ -81,6 +81,7 @@
     "__functional_03": "cpp",
     "random": "cpp",
     "unordered_set": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "filesystem": "cpp"
   }
 }

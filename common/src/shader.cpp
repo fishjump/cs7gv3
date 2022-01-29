@@ -89,17 +89,7 @@ common::result_t<GLuint> gl::shader_t::build() {
   return {_program_id, std::nullopt};
 }
 
-common::result_t<> gl::shader_t::use() const {
-  auto res = validate();
-  if (res.err != std::nullopt) {
-    LOG_ERR(res.err.value());
-    return {common::none_v, res.err};
-  }
-
-  glUseProgram(_program_id);
-
-  return {common::none_v, std::nullopt};
-}
+void gl::shader_t::use() const { glUseProgram(_program_id); }
 
 common::result_t<GLuint> gl::shader_t::create() {
   _program_id = glCreateProgram();
