@@ -18,7 +18,7 @@ struct shader_id_t final {
 class shader_t final {
 public:
   shader_t(const std::string &vert_glsl, const std::string &frag_glsl,
-           bool is_file);
+           bool is_file = true, bool build = true);
 
   common::result_t<GLuint> build();
   void use() const;

@@ -82,6 +82,11 @@
     "random": "cpp",
     "unordered_set": "cpp",
     "valarray": "cpp",
-    "filesystem": "cpp"
+    "filesystem": "cpp",
+    "any": "cpp",
+    "codecvt": "cpp",
+    "condition_variable": "cpp",
+    "future": "cpp",
+    "queue": "cpp"
   }
 }

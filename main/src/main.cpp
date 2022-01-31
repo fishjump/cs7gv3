@@ -8,142 +8,125 @@
 
 #include <common.hpp>
 #include <gl.hpp>
+#include <io.hpp>
 #include <program_options.hpp>
 
 namespace {
 
-std::vector<gl::shader_t> shaders;
-
-gl::camera_t camera(glm::vec3(0.0f, 0.0f, 3.0f));
-constexpr uint32_t SCR_WIDTH = 800;
-constexpr uint32_t SCR_HEIGHT = 600;
-
-float last_x = SCR_WIDTH / 2.0f;
-float last_y = SCR_HEIGHT / 2.0f;
-bool first_mouse = true;
-float delta_time = 0.0f;
+glm::vec3 light_pos = {.0f, 2.0f, 2.0f};
 float last_frame = 0.0f;
-
-void process_input(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-    glfwSetWindowShouldClose(window, true);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    camera.process_keyboard(gl::camera_movement_t::FORWARD, delta_time);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    camera.process_keyboard(gl::camera_movement_t::BACKWARD, delta_time);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    camera.process_keyboard(gl::camera_movement_t::LEFT, delta_time);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    camera.process_keyboard(gl::camera_movement_t::RIGHT, delta_time);
-  }
-}
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow *window, double x_pos_in, double y_pos_in) {
-  float x_pos = static_cast<float>(x_pos_in);
-  float y_pos = static_cast<float>(y_pos_in);
-
-  if (first_mouse) {
-    last_x = x_pos;
-    last_y = y_pos;
-    first_mouse = false;
-  }
-
-  float x_offset = x_pos - last_x;
-  float y_offset = last_y - y_pos;
-
-  last_x = x_pos;
-  last_y = y_pos;
-
-  camera.process_mouse_movement(x_offset, y_offset);
-}
-
-void scroll_callback(GLFWwindow *window, double x_offset, double y_offset) {
-  camera.process_mouse_scroll(static_cast<float>(y_offset));
-}
 
 } // namespace
 
 int main(int argc, char **argv) {
-  auto opts = cs7gv3::parse_opts(argc, argv);
-
   gl::init();
+  defer(glfwTerminate());
 
-  GLFWwindow *window =
-      glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "cs7gv3", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(cs7gv3::SCR_WIDTH, cs7gv3::SCR_HEIGHT,
+                                        "cs7gv3", NULL, NULL);
   if (window == NULL) {
-    std::cout << "Failed to create GLFW window" << std::endl;
-    glfwTerminate();
+    LOG_ERR("Failed to create GLFW window");
     return -1;
   }
 
   glfwMakeContextCurrent(window);
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetScrollCallback(window, scroll_callback);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  // glfwSetFramebufferSizeCallback(window, cs7gv3::framebuffer_size_callback);
+  // glfwSetCursorPosCallback(window, cs7gv3::mouse_callback);
+  // glfwSetScrollCallback(window, cs7gv3::scroll_callback);
+  // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    std::cout << "Failed to initialize GLAD" << std::endl;
+    LOG_ERR("Failed to initialize GLAD");
     return -1;
   }
 
+  glEnable(GL_DEPTH_TEST);
+
   // create shaders
-  shaders.push_back(gl::shader_t(opts.vert.value(), opts.frag.value(), true));
+  gl::shader_t phong_shader("shader/base.vs", "shader/phong.fs");
+  gl::shader_t light_cube_shader("shader/light_cube.vs",
+                                 "shader/light_cube.fs");
 
-  // build shaders
-  for (auto &shader : shaders) {
-    auto res = shader.build();
-    if (res.err != std::nullopt) {
-      LOG_ERR(res.err.value());
-      return 1;
-    }
-  }
+  gl::model_t lamp("model/light_cude.obj", [&](gl::model_t &self) {
+    self.translate(light_pos).scale(glm::vec3(0.2f));
+  });
 
-  gl::model_t model(opts.model.value());
+  gl::model_t teapot1(
+      "model/teapot.obj",
+      [&](gl::model_t &self) {
+        self.translate({-1.5, 0, 0});
+      },
+      [&](gl::model_t &self) {
+        self.rotate(1, {0, 1, 0});
+      });
+
+  gl::model_t teapot2(
+      "model/teapot.obj",
+      [&](gl::model_t &self) {
+        self.translate({1.5, 0, 0});
+      },
+      [&](gl::model_t &self) {
+        self.rotate(1, {0, 1, 0});
+      });
 
   while (!glfwWindowShouldClose(window)) {
-    float current_frame = static_cast<float>(glfwGetTime());
-    delta_time = current_frame - last_frame;
-    last_frame = current_frame;
-
-    process_input(window);
-
-    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    shaders[0].use();
+    float current_frame = (float)glfwGetTime();
+    cs7gv3::delta_time() = current_frame - last_frame;
+    last_frame = current_frame;
 
-    glm::mat4 projection_u =
-        glm::perspective(glm::radians(camera.zoom()),
-                         (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    shaders[0].set_uniform("projection_u", projection_u);
+    // cs7gv3::process_input(window);
 
-    glm::mat4 view_u = camera.view_matrix();
-    shaders[0].set_uniform("view_u", view_u);
+    teapot1.loop();
+    teapot2.loop();
+    lamp.loop();
 
-    glm::mat4 model_u = glm::mat4(1.0f);
-    model_u = glm::translate(model_u, glm::vec3(0.0f, 0.0f, 0.0f));
-    model_u = glm::scale(model_u, glm::vec3(1.0f, 1.0f, 1.0f));
-    shaders[0].set_uniform("model_u", model_u);
+    phong_shader.use();
+    phong_shader.set_uniform("view_pos", cs7gv3::camera().position());
 
-    model.draw(shaders[0]);
+    // light properties
+    glm::vec3 light_color(1);
+    glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
+    glm::vec3 ambient_color = diffuse_color * glm::vec3(2.0f);
+    phong_shader.set_uniform("light.position", light_pos);
+    phong_shader.set_uniform("light.ambient_color", ambient_color);
+    phong_shader.set_uniform("light.diffuse_color", diffuse_color);
+    phong_shader.set_uniform("light.specular_color", glm::vec3(1.0f));
 
+    // material properties
+    phong_shader.set_uniform("material.ambient_color", glm::vec3(0));
+    phong_shader.set_uniform("material.diffuse_color", glm::vec3(1.0));
+    phong_shader.set_uniform("material.specular_color", glm::vec3(0.5));
+    phong_shader.set_uniform("material.shininess", 16.0f);
+
+    // view/projection transformations
+    glm::mat4 projection = glm::perspective(
+        glm::radians(cs7gv3::camera().zoom()),
+        (float)cs7gv3::SCR_WIDTH / (float)cs7gv3::SCR_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 view = cs7gv3::camera().view_matrix();
+    phong_shader.set_uniform("projection_uni", projection);
+    phong_shader.set_uniform("view_uni", view);
+
+    // world transformation
+    phong_shader.set_uniform("model_uni", teapot1.position());
+    teapot1.draw(phong_shader);
+
+    phong_shader.set_uniform("model_uni", teapot2.position());
+    teapot2.draw(phong_shader);
+
+    // also draw the lamp object
+    light_cube_shader.use();
+    light_cube_shader.set_uniform("projection_uni", projection);
+    light_cube_shader.set_uniform("view_uni", view);
+
+    light_cube_shader.set_uniform("model_uni", lamp.position());
+
+    lamp.draw(light_cube_shader);
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
 
-  glfwTerminate();
   return 0;
 }

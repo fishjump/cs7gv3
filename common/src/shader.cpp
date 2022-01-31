@@ -8,7 +8,9 @@
 
 #define EXT_LIST                                                               \
   EXT("vert", GL_VERTEX_SHADER)                                                \
-  EXT("frag", GL_FRAGMENT_SHADER)
+  EXT("frag", GL_FRAGMENT_SHADER)                                              \
+  EXT("vs", GL_VERTEX_SHADER)                                                  \
+  EXT("fs", GL_FRAGMENT_SHADER)
 
 /// internal func declare
 namespace {
@@ -36,7 +38,7 @@ const gl::shader_id_t &gl::shader_t::shader_id() const { return _shader_id; }
 GLuint gl::shader_t::program_id() const { return _program_id; }
 
 gl::shader_t::shader_t(const std::string &vert_glsl,
-                       const std::string &frag_glsl, bool is_file) {
+                       const std::string &frag_glsl, bool is_file, bool build) {
   std::function compile = [](const std::string &glsl, const GLenum shader_type)
       -> common::result_t<GLuint> { return compile_shader(glsl, shader_type); };
 
@@ -65,6 +67,15 @@ gl::shader_t::shader_t(const std::string &vert_glsl,
 
     return {{vert_id, frag_id}, std::nullopt};
   };
+
+  if (!build) {
+    return;
+  }
+  auto res = this->build();
+  if (res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    exit(1);
+  }
 }
 
 common::result_t<GLuint> gl::shader_t::build() {

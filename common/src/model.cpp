@@ -3,6 +3,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <boost/filesystem.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
 
 #include <common.hpp>
@@ -57,16 +58,49 @@ common::result_t<GLuint> texture_from_file(const std::string &file,
 
 } // namespace
 
-gl::model_t::model_t(const std::string &path, bool gamma_correction)
-    : _gamma_correction(gamma_correction) {
+gl::model_t::model_t(const std::string &path, const init_func_t init,
+                     const loop_func_t loop, bool gamma_correction)
+    : _gamma_correction(gamma_correction), _position(glm::mat4(1)), _init(init),
+      _loop(loop) {
   auto res = load(path);
   if (res.err != std::nullopt) {
     LOG_ERR(res.err.value());
     return;
   }
+
+  this->init();
+}
+
+const void gl::model_t::init() {
+  if (_init != nullptr) {
+    _init(*this);
+  }
+}
+const void gl::model_t::loop() {
+  if (_loop != nullptr) {
+    _loop(*this);
+  }
+}
+
+const glm::mat4 &gl::model_t::position() const { return _position; }
+
+gl::model_t &gl::model_t::translate(const glm::vec3 &v) {
+  _position = glm::translate(_position, v);
+  return *this;
+}
+
+gl::model_t &gl::model_t::scale(const glm::vec3 &v) {
+  _position = glm::scale(_position, v);
+  return *this;
+}
+
+gl::model_t &gl::model_t::rotate(float degree, const glm::vec3 &axis) {
+  _position = glm::rotate(_position, glm::radians(degree), axis);
+  return *this;
 }
 
 void gl::model_t::draw(const shader_t &shader) {
+  shader.use();
   for (const auto &mesh : _meshes) {
     mesh.draw(shader);
   }
