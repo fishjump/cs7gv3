@@ -9,7 +9,7 @@ gl::camera_t::camera_t(glm::vec3 position, glm::vec3 world_up, float yaw,
 }
 
 glm::mat4 gl::camera_t::view_matrix() const {
-  return glm::lookAt(_position, _position + _front, _up);
+  return glm::lookAt(_position, {0.0f, 0.0f, 0.0f}, _up);
 }
 
 void gl::camera_t::process_keyboard(camera_movement_t direction,
@@ -23,10 +23,16 @@ void gl::camera_t::process_keyboard(camera_movement_t direction,
     _position -= _front * velocity;
     break;
   case camera_movement_t::LEFT:
-    _position -= _right * velocity;
+    // _position -= _right * velocity;
+    _position =
+        glm::vec4(_position, 0) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(-1.0f), {0.0f, 1.0f, 0.0f});
     break;
   case camera_movement_t::RIGHT:
-    _position += _right * velocity;
+    // _position += _right * velocity;
+    _position =
+        glm::vec4(_position, 0) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(1.0f), {0.0f, 1.0f, 0.0f});
     break;
   }
 }
@@ -63,7 +69,6 @@ void gl::camera_t::update_camera_vectors() {
   glm::vec3 front = {cos(glm::radians(_yaw)) * cos(glm::radians(_pitch)),
                      sin(glm::radians(_pitch)),
                      sin(glm::radians(_yaw)) * cos(glm::radians(_pitch))};
-
   _front = glm::normalize(front);
   _right = glm::normalize(glm::cross(_front, _world_up));
   _up = glm::normalize(glm::cross(_right, _front));

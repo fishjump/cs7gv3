@@ -26,19 +26,20 @@ uniform light_t light;
 uniform sampler2D texture_diffuse1;
 
 void main() {
+    vec3 norm = normalize(normal);
+    vec3 view_direction = normalize(view_pos - frag_pos);
+    vec3 light_direction = normalize(frag_pos - light.position);
+    vec3 reflect_direction = reflect(light_direction, norm);
+
     // ambient
     vec3 ambient = light.ambient_color * material.ambient_color;
 
     // diffuse 
-    vec3 norm = normalize(normal);
-    vec3 light_dir = normalize(light.position - frag_pos);
-    float diff = max(dot(norm, light_dir), 0.0);
+    float diff = max(dot(norm, -light_direction), 0.0);
     vec3 diffuse = diff * light.diffuse_color * material.diffuse_color;
 
     // specular
-    vec3 view_dir = normalize(view_pos - frag_pos);
-    vec3 reflect_dir = reflect(-light_dir, norm);
-    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material.shininess);
+    float spec = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess);
     vec3 specular = spec * light.specular_color * material.specular_color;
 
     vec3 result = (ambient + diffuse + specular) * texture(texture_diffuse1, texture_coordinate).xyz;
