@@ -45,8 +45,8 @@ int main(int argc, char **argv) {
   // create shaders
   gl::shader_t phong_shader("shader/base.vs", "shader/phong.fs");
   gl::shader_t gooch_shader("shader/base.vs", "shader/gooch.fs");
-  gl::shader_t light_cube_shader("shader/light_cube.vs",
-                                 "shader/light_cube.fs");
+  // gl::shader_t light_cube_shader("shader/light_cube.vs",
+  //                                "shader/light_cube.fs");
 
   gl::model_t teapot1(
       "model/teapot.obj",

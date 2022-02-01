@@ -203,20 +203,20 @@ gl::model_t::load_material_textures(aiMaterial *mat, aiTextureType type,
     aiString str;
     mat->GetTexture(type, i, &str);
 
-    auto res = _textures_cache.find(str.C_Str());
-    if (res != _textures_cache.end()) {
-      textures.push_back(res->second);
+    if (auto texture_cache = _textures_cache.find(str.C_Str());
+        texture_cache != _textures_cache.end()) {
+      textures.push_back(texture_cache->second);
       continue;
     }
 
-    auto res_1 = texture_from_file(str.C_Str(), _dir, _gamma_correction);
-    if (res_1.err != std::nullopt) {
-      LOG_ERR(res_1.err.value());
+    auto res = texture_from_file(str.C_Str(), _dir, _gamma_correction);
+    if (res.err != std::nullopt) {
+      LOG_ERR(res.err.value());
       continue;
     }
 
     gl::texture_t texture = {
-        .id = res_1.result,
+        .id = res.result,
         .type = typeName,
         .path = str.C_Str(),
     };

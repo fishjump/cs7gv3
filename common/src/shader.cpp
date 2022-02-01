@@ -6,31 +6,14 @@
 #include <gl/gl.hpp>
 #include <gl/shader.hpp>
 
-#define EXT_LIST                                                               \
-  EXT("vert", GL_VERTEX_SHADER)                                                \
-  EXT("frag", GL_FRAGMENT_SHADER)                                              \
-  EXT("vs", GL_VERTEX_SHADER)                                                  \
-  EXT("fs", GL_FRAGMENT_SHADER)
-
-/// internal func declare
+// internal func declare
 namespace {
 
-#define EXT(x, y) {x, y},
-std::unordered_map<std::string, GLenum> ext_to_shader_type_map = {EXT_LIST};
-#undef EXT
-
-#define EXT(x, y) #x ", "
-constexpr auto expect_exts = EXT_LIST "\b\b  ";
-#undef EXT
-
-inline common::result_t<std::shared_ptr<std::string>>
+common::result_t<std::shared_ptr<std::string>>
 load_shader(const std::string &file);
 
-inline common::result_t<GLuint> compile_shader(const std::string &glsl_file);
-common::result_t<GLuint> compile_shader(const char *glsl_code,
+common::result_t<GLuint> compile_shader(const std::string &glsl_file,
                                         const GLenum shader_type);
-inline common::result_t<GLuint> compile_shader(const std::string &glsl_code,
-                                               const GLenum shader_type);
 
 } // namespace
 
@@ -38,63 +21,28 @@ const gl::shader_id_t &gl::shader_t::shader_id() const { return _shader_id; }
 GLuint gl::shader_t::program_id() const { return _program_id; }
 
 gl::shader_t::shader_t(const std::string &vert_glsl,
-                       const std::string &frag_glsl, bool is_file, bool build) {
-  std::function compile = [](const std::string &glsl, const GLenum shader_type)
-      -> common::result_t<GLuint> { return compile_shader(glsl, shader_type); };
-
-  if (is_file) {
-    compile = [](const std::string &glsl,
-                 const GLenum shader_type) -> common::result_t<GLuint> {
-      return compile_shader(glsl);
-    };
-  }
-
-  _compile = [vert_glsl, frag_glsl,
-              compile]() -> common::result_t<shader_id_t> {
-    auto res = compile(vert_glsl, GL_VERTEX_SHADER);
-    if (res.err != std::nullopt) {
-      LOG_ERR(res.err.value());
-      return {{}, res.err};
-    }
-    GLuint vert_id = res.result;
-
-    res = compile(frag_glsl, GL_FRAGMENT_SHADER);
-    if (res.err != std::nullopt) {
-      LOG_ERR(res.err.value());
-      return {{}, res.err};
-    }
-    GLuint frag_id = res.result;
-
-    return {{vert_id, frag_id}, std::nullopt};
-  };
-
-  if (!build) {
-    return;
-  }
-  auto res = this->build();
-  if (res.err != std::nullopt) {
+                       const std::string &frag_glsl) {
+  if (auto res = build(vert_glsl, frag_glsl); res.err != std::nullopt) {
     LOG_ERR(res.err.value());
     exit(1);
   }
 }
 
-common::result_t<GLuint> gl::shader_t::build() {
-  auto res_0 = create();
-  if (res_0.err != std::nullopt) {
-    LOG_ERR(res_0.err.value());
-    return {0, res_0.err};
+common::result_t<GLuint> gl::shader_t::build(const std::string &vert_glsl,
+                                             const std::string &frag_glsl) {
+  if (auto res = create(); res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    return {0, res.err};
   }
 
-  auto res_1 = compile();
-  if (res_1.err != std::nullopt) {
-    LOG_ERR(res_1.err.value());
-    return {0, res_1.err};
+  if (auto res = compile(vert_glsl, frag_glsl); res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    return {0, res.err};
   }
 
-  auto res_2 = link();
-  if (res_2.err != std::nullopt) {
-    LOG_ERR(res_2.err.value());
-    return {0, res_2.err};
+  if (auto res = link(); res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    return {0, res.err};
   }
 
   return {_program_id, std::nullopt};
@@ -113,23 +61,30 @@ common::result_t<GLuint> gl::shader_t::create() {
   return {_program_id, std::nullopt};
 }
 
-common::result_t<gl::shader_id_t> gl::shader_t::compile() {
-  if (_compile == nullptr) {
-    constexpr auto err = "null _compile func ptr";
-    LOG_ERR(err);
-    return {{}, err};
-  }
+common::result_t<gl::shader_id_t>
+gl::shader_t::compile(const std::string &vert_glsl,
+                      const std::string &frag_glsl) {
+  shader_id_t ids = {0, 0};
 
-  auto res = _compile();
+  auto res = compile_shader(vert_glsl, GL_VERTEX_SHADER);
   if (res.err != std::nullopt) {
     LOG_ERR(res.err.value());
-    return res;
+    return {{0, 0}, res.err};
   }
-  _shader_id = res.result;
+  ids.vert_id = res.result;
+
+  res = compile_shader(frag_glsl, GL_FRAGMENT_SHADER);
+  if (res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    return {{0, 0}, res.err};
+  }
+  ids.frag_id = res.result;
+
+  _shader_id = ids;
 
   attach_to_program();
 
-  return res;
+  return {_shader_id, std::nullopt};
 }
 
 common::result_t<> gl::shader_t::link() {
@@ -165,24 +120,14 @@ common::result_t<> gl::shader_t::validate() const {
 }
 
 void gl::shader_t::attach_to_program() {
-  glAttachShader(_program_id, _shader_id.frag_id);
   glAttachShader(_program_id, _shader_id.vert_id);
+  glAttachShader(_program_id, _shader_id.frag_id);
 }
 
-/// internal func impl
+// internal func impl
 namespace {
 
-inline common::result_t<GLenum> get_shader_type(const std::string &ext) {
-  auto iter = ext_to_shader_type_map.find(ext);
-  if (iter == ext_to_shader_type_map.end()) {
-    return {0, common::make_str("malformed extension name: ", ext,
-                                ", expect: ", expect_exts)};
-  }
-
-  return {iter->second, std::nullopt};
-}
-
-inline common::result_t<std::shared_ptr<std::string>>
+common::result_t<std::shared_ptr<std::string>>
 load_shader(const std::string &file) {
   std::ifstream fs;
 
@@ -202,51 +147,38 @@ load_shader(const std::string &file) {
   return {std::make_shared<std::string>(ss.str()), std::nullopt};
 }
 
-inline common::result_t<GLuint> compile_shader(const std::string &glsl_file) {
-  auto res_0 = common::get_ext(glsl_file);
-  if (res_0.err != std::nullopt) {
-    return {0, res_0.err};
+common::result_t<GLuint> compile_shader(const std::string &glsl_file,
+                                        const GLenum shader_type) {
+  auto res = load_shader(glsl_file);
+  if (res.err != std::nullopt) {
+    LOG_ERR(res.err.value());
+    return {0, res.err};
   }
 
-  auto res_1 = get_shader_type(res_0.result);
-  if (res_1.err != std::nullopt) {
-    return {0, res_1.err};
+  GLuint shader_id = glCreateShader(shader_type);
+  if (shader_id == 0) {
+    const auto err = common::make_str(
+        "filename: ", glsl_file, ", error creating shader type ", shader_type);
+    LOG_ERR(err);
+    return {0, err};
   }
+  const GLchar *glsl_code = res.result->c_str();
 
-  auto res_2 = load_shader(glsl_file);
-  if (res_2.err != std::nullopt) {
-    return {0, res_2.err};
-  }
-
-  return compile_shader(res_2.result->c_str(), res_1.result);
-}
-
-inline common::result_t<GLuint> compile_shader(const char *glsl_code,
-                                               const GLenum shader_type) {
-  GLuint shader_obj = glCreateShader(shader_type);
-  if (shader_obj == 0) {
-    return {0, common::make_str("error creating shader type ", shader_type)};
-  }
-
-  glShaderSource(shader_obj, 1, (const GLchar **)&glsl_code, NULL);
-  glCompileShader(shader_obj);
+  glShaderSource(shader_id, 1, (const GLchar **)&glsl_code, NULL);
+  glCompileShader(shader_id);
 
   GLint success;
-  glGetShaderiv(shader_obj, GL_COMPILE_STATUS, &success);
+  glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
   if (!success) {
     GLchar log[1024];
-    glGetShaderInfoLog(shader_obj, 1024, NULL, log);
-    return {0, common::make_str("Error compiling shader type ", shader_type,
-                                ": ", log)};
+    glGetShaderInfoLog(shader_id, 1024, NULL, log);
+    const auto err = common::make_str("filename: ", glsl_file,
+                                      ", error compiling shader type ",
+                                      shader_type, ":", log);
+    return {0, err};
   }
 
-  return {shader_obj, std::nullopt};
-}
-
-inline common::result_t<GLuint> compile_shader(const std::string &glsl_code,
-                                               const GLenum shader_type) {
-  const char *glsl_cstr = glsl_code.c_str();
-  return compile_shader(glsl_cstr, shader_type);
+  return {shader_id, std::nullopt};
 }
 
 } // namespace

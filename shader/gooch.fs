@@ -56,6 +56,6 @@ void main() {
   float spec = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess);
   vec3 specular = spec * light.specular_color * material.specular_color;
 
-  vec3 result = (diffuse + specular) * texture(texture_diffuse1, texture_coordinate).xyz;
+  vec3 result = diffuse + specular;
   frag_color = vec4(result, 1.0);
 }
