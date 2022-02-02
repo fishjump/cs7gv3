@@ -8,8 +8,9 @@
 #include <boost/pfr.hpp>
 
 #include <common.hpp>
-#include <gl/gl.hpp>
-#include <gl/shader.hpp>
+
+#include "gl.hpp"
+#include "shader.hpp"
 
 namespace gl {
 

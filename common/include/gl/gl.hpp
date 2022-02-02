@@ -28,6 +28,20 @@ inline constexpr glm::vec3 red = {1.0f, 0.0f, 0.0f};
 inline constexpr glm::vec3 green = {0.0f, 1.0f, 0.0f};
 inline constexpr glm::vec3 blue = {0.0f, 0.0f, 1.0f};
 
+struct material_t {
+  GLfloat shininess;
+  glm::vec3 ambient_color;
+  glm::vec3 diffuse_color;
+  glm::vec3 specular_color;
+};
+
+struct light_t {
+  glm::vec3 position;
+  glm::vec3 ambient_color;
+  glm::vec3 diffuse_color;
+  glm::vec3 specular_color;
+};
+
 } // namespace gl
 
 #endif // GL_GL_HPP

@@ -4,8 +4,6 @@
 #include <iostream>
 #include <sstream>
 
-#include <common/common.hpp>
-
 #define LOG_LEVEL_NO_LOG 0
 #define LOG_LEVEL_ERR 1
 #define LOG_LEVEL_WRAN 2

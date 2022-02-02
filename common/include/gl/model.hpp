@@ -5,7 +5,8 @@
 #include <vector>
 
 #include <assimp/scene.h>
-#include <gl/mesh.hpp>
+
+#include "mesh.hpp"
 
 namespace gl {
 

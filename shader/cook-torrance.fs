@@ -23,6 +23,7 @@ out vec4 frag_color;
 uniform vec3 view_pos;
 uniform material_t material;
 uniform light_t light;
+
 uniform sampler2D texture_diffuse1;
 
 // material parameters

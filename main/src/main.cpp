@@ -13,8 +13,16 @@
 
 namespace {
 
-glm::vec3 light_pos = {0.0f, 2.0f, 8.0f};
+gl::light_t light = {
+    .position = {0.0f, 2.0f, 8.0f},
+    .diffuse_color = gl::white * glm::vec3(0.5f),
+    .ambient_color = gl::white,
+    .specular_color = glm::vec3(1.0f),
+};
+
 float last_frame = 0.0f;
+
+gl::shader_profile_t phong_profile;
 
 } // namespace
 
@@ -79,25 +87,16 @@ int main(int argc, char **argv) {
     teapot1.loop();
     teapot2.loop();
 
-    // light properties
-    glm::vec3 light_color(gl::white);
-    glm::vec3 diffuse_color = light_color * glm::vec3(0.5f);
-    glm::vec3 ambient_color = diffuse_color * glm::vec3(2.0f);
-
     {
       phong_shader.use();
-      phong_shader.set_uniform("view_pos", cs7gv3::camera().position());
-
-      phong_shader.set_uniform("light.position", light_pos);
-      phong_shader.set_uniform("light.ambient_color", ambient_color);
-      phong_shader.set_uniform("light.diffuse_color", diffuse_color);
-      phong_shader.set_uniform("light.specular_color", glm::vec3(1.0f));
-
-      // material properties
-      phong_shader.set_uniform("material.ambient_color", gl::gray);
-      phong_shader.set_uniform("material.diffuse_color", gl::gray);
-      phong_shader.set_uniform("material.specular_color", gl::gray);
-      phong_shader.set_uniform("material.shininess", 16.0f);
+      gl::phong_profile_t profile;
+      profile.view_pos = cs7gv3::camera().position();
+      profile.material = {.shininess = 16,
+                          .ambient_color = gl::gray,
+                          .diffuse_color = gl::gray,
+                          .specular_color = gl::gray};
+      profile.light = light;
+      phong_shader.set_profile(profile);
 
       // view/projection transformations
       glm::mat4 projection = glm::perspective(
@@ -112,18 +111,14 @@ int main(int argc, char **argv) {
 
     {
       gooch_shader.use();
-      gooch_shader.set_uniform("view_pos", cs7gv3::camera().position());
-
-      gooch_shader.set_uniform("light.position", light_pos);
-      gooch_shader.set_uniform("light.ambient_color", ambient_color);
-      gooch_shader.set_uniform("light.diffuse_color", diffuse_color);
-      gooch_shader.set_uniform("light.specular_color", glm::vec3(1.0f));
-
-      // material properties
-      gooch_shader.set_uniform("material.ambient_color", gl::gray);
-      gooch_shader.set_uniform("material.diffuse_color", gl::gray);
-      gooch_shader.set_uniform("material.specular_color", gl::gray);
-      gooch_shader.set_uniform("material.shininess", 16.0f);
+      gl::gooch_profile_t profile;
+      profile.view_pos = cs7gv3::camera().position();
+      profile.material = {.shininess = 16,
+                          .ambient_color = gl::gray,
+                          .diffuse_color = gl::gray,
+                          .specular_color = gl::gray};
+      profile.light = light;
+      gooch_shader.set_profile(profile);
 
       // view/projection transformations
       glm::mat4 projection = glm::perspective(

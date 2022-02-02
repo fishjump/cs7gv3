@@ -8,6 +8,8 @@
 
 #include <common.hpp>
 
+#include "shader_profile.hpp"
+
 namespace gl {
 
 struct shader_id_t final {
@@ -27,6 +29,7 @@ public:
 
   template <class T>
   void set_uniform(const std::string &name, const T &t) const;
+  void set_profile(shader_profile_t &profile);
 
 private:
   using compile_func_t = common::result_t<shader_id_t>();

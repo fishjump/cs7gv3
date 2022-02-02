@@ -1,10 +1,10 @@
 #version 330 core
 
 struct material_t {
+    float shininess;
     vec3 ambient_color;
     vec3 diffuse_color;
     vec3 specular_color;
-    float shininess;
 };
 
 struct light_t {
@@ -42,6 +42,5 @@ void main() {
     float spec = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess);
     vec3 specular = spec * light.specular_color * material.specular_color;
 
-    vec3 result = ambient + diffuse + specular;
-    frag_color = vec4(result, 1.0);
+    frag_color = vec4(ambient + diffuse + specular, 1.0);
 }

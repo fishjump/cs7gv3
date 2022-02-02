@@ -7,9 +7,9 @@
 #include <string>
 #include <type_traits>
 
-#include <common/common.hpp>
-#include <common/log.hpp>
 #include <gl/gl.hpp>
+
+#include "log.hpp"
 
 #define __MERGE(x, y) x_##y
 #define _MERGE(x, y) __MERGE(x, y)

@@ -3,6 +3,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <boost/pfr.hpp>
+
 #include <gl/gl.hpp>
 #include <gl/shader.hpp>
 
@@ -124,7 +126,16 @@ void gl::shader_t::attach_to_program() {
   glAttachShader(_program_id, _shader_id.frag_id);
 }
 
-// internal func impl
+void gl::shader_t::set_profile(gl::shader_profile_t &profile) {
+  const meta_profile_t &meta = profile.meta();
+  boost::pfr::for_each_field(meta, [this](const auto &field, int index) {
+    for (const auto &pair : field) {
+      set_uniform(pair.first, pair.second);
+    }
+  });
+}
+
+// internal func implƒ
 namespace {
 
 common::result_t<std::shared_ptr<std::string>>
