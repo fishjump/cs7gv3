@@ -9,7 +9,8 @@
                 "/opt/homebrew/Cellar/glew/2.2.0_1/include",
                 "/opt/homebrew/Cellar/glfw/3.3.6/include",
                 "/opt/homebrew/Cellar/boost/1.76.0/include",
-                "/opt/homebrew/Cellar/assimp/5.2.0/include"
+                "/opt/homebrew/Cellar/assimp/5.2.0/include",
+                "/opt/homebrew/Cellar/freetype/2.11.1/include/freetype2"
             ],
             "defines": [],
             "macFrameworkPath": [

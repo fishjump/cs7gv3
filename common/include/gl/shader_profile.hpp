@@ -34,14 +34,14 @@ protected:
   meta_profile_t _meta;
 };
 
-class phong_profile_t : public shader_profile_t {
+class phong_profile_t final : public shader_profile_t {
 public:
-  virtual const meta_profile_t &meta();
+  const meta_profile_t &meta();
 };
 
-class gooch_profile_t : public shader_profile_t {
+class gooch_profile_t final: public shader_profile_t {
 public:
-  virtual const meta_profile_t &meta();
+  const meta_profile_t &meta();
 
   GLfloat a = 0.2;
   GLfloat b = 0.6;

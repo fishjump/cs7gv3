@@ -3,9 +3,6 @@
 #include <optional>
 #include <vector>
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <common.hpp>
 #include <gl.hpp>
 #include <io.hpp>
@@ -21,8 +18,6 @@ gl::light_t light = {
 };
 
 float last_frame = 0.0f;
-
-gl::shader_profile_t phong_profile;
 
 } // namespace
 
@@ -49,12 +44,16 @@ int main(int argc, char **argv) {
   }
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // create shaders
   gl::shader_t phong_shader("shader/base.vs", "shader/phong.fs");
   gl::shader_t gooch_shader("shader/base.vs", "shader/gooch.fs");
-  // gl::shader_t light_cube_shader("shader/light_cube.vs",
-  //                                "shader/light_cube.fs");
+  gl::shader_t font_shader("shader/font.vs", "shader/font.fs");
+
+  gl::freetype_gl::init(font_shader, cs7gv3::SCR_WIDTH, cs7gv3::SCR_HEIGHT);
+  auto font = gl::freetype_gl::load_font("/Library/Fonts/Arial Unicode.ttf");
 
   gl::model_t teapot1(
       "model/teapot.obj",
@@ -130,6 +129,11 @@ int main(int argc, char **argv) {
       gooch_shader.set_uniform("model_uni", teapot2.position());
       teapot2.draw(gooch_shader);
     }
+
+    gl::freetype_gl::print(font, font_shader, "This is sample text", 25.0f,
+                           25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+    gl::freetype_gl::print(font, font_shader, "(C) LearnOpenGL.com", 540.0f,
+                           570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
 
     glfwSwapBuffers(window);
     glfwPollEvents();

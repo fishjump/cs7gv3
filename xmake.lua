@@ -10,7 +10,8 @@ if is_plat("macosx") then
     "/opt/homebrew/Cellar/glew/2.2.0_1/include",
     "/opt/homebrew/Cellar/glfw/3.3.6/include",
     "/opt/homebrew/Cellar/boost/1.76.0/include",
-    "/opt/homebrew/Cellar/assimp/5.2.0/include"
+    "/opt/homebrew/Cellar/assimp/5.2.0/include",
+    "/opt/homebrew/Cellar/freetype/2.11.1/include/freetype2"
   )
 
   add_linkdirs(
@@ -18,10 +19,11 @@ if is_plat("macosx") then
     "/opt/homebrew/Cellar/glew/2.2.0_1/lib",
     "/opt/homebrew/Cellar/glfw/3.3.6/lib",
     "/opt/homebrew/Cellar/boost/1.76.0/lib",
-    "/opt/homebrew/Cellar/assimp/5.2.0/lib"
+    "/opt/homebrew/Cellar/assimp/5.2.0/lib",
+    "/opt/homebrew/Cellar/freetype/2.11.1/lib"
   )
 
-  add_links("GLEW")
+  add_links()
 
   add_frameworks("OpenGL", "GLUT", "Cocoa")
 end
@@ -30,4 +32,4 @@ target("cs7gv3")
   set_kind("binary")
   add_includedirs("main/include")
   add_files("main/src/**.cpp")
-  add_links("boost_program_options", "boost_filesystem", "assimp", "glfw")
+  add_links("boost_program_options", "boost_filesystem", "GLEW", "assimp", "glfw", "freetype")
