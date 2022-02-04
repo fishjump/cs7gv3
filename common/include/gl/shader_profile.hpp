@@ -23,6 +23,9 @@ struct meta_profile_t {
 
 class shader_profile_t {
 public:
+  shader_profile_t();
+  shader_profile_t(const material_t &material, const light_t &light);
+
   virtual const meta_profile_t &meta();
 
   material_t material;
@@ -30,18 +33,28 @@ public:
 
   glm::vec3 view_pos;
 
+  glm::mat4 projection;
+  glm::mat4 view;
+  glm::mat4 model;
+
 protected:
   meta_profile_t _meta;
 };
 
 class phong_profile_t final : public shader_profile_t {
 public:
-  const meta_profile_t &meta();
+  phong_profile_t();
+  phong_profile_t(const material_t &material, const light_t &light);
+
+  const meta_profile_t &meta() override;
 };
 
-class gooch_profile_t final: public shader_profile_t {
+class gooch_profile_t final : public shader_profile_t {
 public:
-  const meta_profile_t &meta();
+  gooch_profile_t();
+  gooch_profile_t(const material_t &material, const light_t &light);
+
+  const meta_profile_t &meta() override;
 
   GLfloat a = 0.2;
   GLfloat b = 0.6;
@@ -49,9 +62,9 @@ public:
   glm::vec3 k_yellow = {0.4f, 0.4f, 0.0f};
 };
 
-class cook_torrance_profile_t : public shader_profile_t {
+class cook_torrance_profile_t final : public shader_profile_t {
 public:
-  virtual const meta_profile_t &meta();
+  const meta_profile_t &meta() override;
 };
 
 template <class T>
@@ -62,23 +75,23 @@ void insert(meta_profile_t &meta, const std::string &key, const T &value);
 template <class T>
 void gl::insert(meta_profile_t &meta, const std::string &key, const T &value) {
   if constexpr (std::is_same_v<T, GLboolean>) {
-    meta.booleans.insert(std::make_pair(key, value));
+    meta.booleans[key] = value;
   } else if constexpr (std::is_integral_v<T>) {
-    meta.integrals.insert(std::make_pair(key, value));
+    meta.integrals[key] = value;
   } else if constexpr (std::is_same_v<T, GLfloat>) {
-    meta.floats.insert(std::make_pair(key, value));
+    meta.floats[key] = value;
   } else if constexpr (common::is_glm_vec_v<T, 2>) {
-    meta.vec2s.insert(std::make_pair(key, value));
+    meta.vec2s[key] = value;
   } else if constexpr (common::is_glm_vec_v<T, 3>) {
-    meta.vec3s.insert(std::make_pair(key, value));
+    meta.vec3s[key] = value;
   } else if constexpr (common::is_glm_vec_v<T, 4>) {
-    meta.vec4s.insert(std::make_pair(key, value));
+    meta.vec4s[key] = value;
   } else if constexpr (common::is_glm_mat_v<T, 2>) {
-    meta.mat2s.insert(std::make_pair(key, value));
+    meta.mat2s[key] = value;
   } else if constexpr (common::is_glm_mat_v<T, 3>) {
-    meta.mat3s.insert(std::make_pair(key, value));
+    meta.mat3s[key] = value;
   } else if constexpr (common::is_glm_mat_v<T, 4>) {
-    meta.mat4s.insert(std::make_pair(key, value));
+    meta.mat4s[key] = value;
   } else {
     static_assert(common::dependent_false_v<T>, "unsupported type");
   }

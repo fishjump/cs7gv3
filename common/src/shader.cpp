@@ -1,4 +1,5 @@
 #include <fstream>
+#include <memory>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -19,25 +20,20 @@ common::result_t<GLuint> compile_shader(const std::string &glsl_file,
 
 } // namespace
 
-const gl::shader_id_t &gl::shader_t::shader_id() const { return _shader_id; }
 GLuint gl::shader_t::program_id() const { return _program_id; }
 
 gl::shader_t::shader_t(const std::string &vert_glsl,
-                       const std::string &frag_glsl) {
-  if (auto res = build(vert_glsl, frag_glsl); res.err != std::nullopt) {
-    LOG_ERR(res.err.value());
-    exit(1);
-  }
-}
+                       const std::string &frag_glsl,
+                       std::shared_ptr<shader_profile_t> profile)
+    : _vert_glsl(vert_glsl), _frag_glsl(frag_glsl), _profile(profile) {}
 
-common::result_t<GLuint> gl::shader_t::build(const std::string &vert_glsl,
-                                             const std::string &frag_glsl) {
+common::result_t<GLuint> gl::shader_t::build() {
   if (auto res = create(); res.err != std::nullopt) {
     LOG_ERR(res.err.value());
     return {0, res.err};
   }
 
-  if (auto res = compile(vert_glsl, frag_glsl); res.err != std::nullopt) {
+  if (auto res = compile(); res.err != std::nullopt) {
     LOG_ERR(res.err.value());
     return {0, res.err};
   }
@@ -50,7 +46,7 @@ common::result_t<GLuint> gl::shader_t::build(const std::string &vert_glsl,
   return {_program_id, std::nullopt};
 }
 
-void gl::shader_t::use() const { glUseProgram(_program_id); }
+void gl::shader_t::use() { glUseProgram(_program_id); }
 
 common::result_t<GLuint> gl::shader_t::create() {
   _program_id = glCreateProgram();
@@ -63,30 +59,28 @@ common::result_t<GLuint> gl::shader_t::create() {
   return {_program_id, std::nullopt};
 }
 
-common::result_t<gl::shader_id_t>
-gl::shader_t::compile(const std::string &vert_glsl,
-                      const std::string &frag_glsl) {
-  shader_id_t ids = {0, 0};
-
-  auto res = compile_shader(vert_glsl, GL_VERTEX_SHADER);
+common::result_t<> gl::shader_t::compile() {
+  auto res = compile_shader(_vert_glsl, GL_VERTEX_SHADER);
   if (res.err != std::nullopt) {
     LOG_ERR(res.err.value());
-    return {{0, 0}, res.err};
+    return {common::none_v, res.err};
   }
-  ids.vert_id = res.result;
+  GLuint vert_id = res.result;
 
-  res = compile_shader(frag_glsl, GL_FRAGMENT_SHADER);
+  res = compile_shader(_frag_glsl, GL_FRAGMENT_SHADER);
   if (res.err != std::nullopt) {
     LOG_ERR(res.err.value());
-    return {{0, 0}, res.err};
+    return {common::none_v, res.err};
   }
-  ids.frag_id = res.result;
+  GLuint frag_id = res.result;
 
-  _shader_id = ids;
+  glAttachShader(_program_id, vert_id);
+  glAttachShader(_program_id, frag_id);
 
-  attach_to_program();
+  glDeleteShader(vert_id);
+  glDeleteShader(frag_id);
 
-  return {_shader_id, std::nullopt};
+  return {common::none_v, std::nullopt};
 }
 
 common::result_t<> gl::shader_t::link() {
@@ -121,21 +115,24 @@ common::result_t<> gl::shader_t::validate() const {
   return {common::none_v, std::nullopt};
 }
 
-void gl::shader_t::attach_to_program() {
-  glAttachShader(_program_id, _shader_id.vert_id);
-  glAttachShader(_program_id, _shader_id.frag_id);
-}
+void gl::shader_t::set_profile() {
+  if (_profile == nullptr) {
+    return;
+  }
 
-void gl::shader_t::set_profile(gl::shader_profile_t &profile) {
-  const meta_profile_t &meta = profile.meta();
-  boost::pfr::for_each_field(meta, [this](const auto &field, int index) {
+  const meta_profile_t &meta = _profile->meta();
+  boost::pfr::for_each_field(meta, [this](const auto &field) {
     for (const auto &pair : field) {
       set_uniform(pair.first, pair.second);
     }
   });
 }
 
-// internal func implƒ
+std::shared_ptr<gl::shader_profile_t> gl::shader_t::profile() {
+  return _profile;
+}
+
+// internal func impl
 namespace {
 
 common::result_t<std::shared_ptr<std::string>>

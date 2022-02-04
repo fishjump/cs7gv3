@@ -19,33 +19,30 @@ struct shader_id_t final {
 
 class shader_t final {
 public:
-  shader_t(const std::string &vert_glsl, const std::string &frag_glsl);
+  shader_t(const std::string &vert_glsl, const std::string &frag_glsl,
+           std::shared_ptr<shader_profile_t> profile = nullptr);
 
-  void use() const;
+  void use();
+  void set_profile();
 
-  const shader_id_t &shader_id() const;
+  common::result_t<GLuint> build();
+
+  std::shared_ptr<gl::shader_profile_t> profile();
   GLuint program_id() const;
   GLuint vao() const;
 
   template <class T>
   void set_uniform(const std::string &name, const T &t) const;
-  void set_profile(shader_profile_t &profile);
 
 private:
-  using compile_func_t = common::result_t<shader_id_t>();
-
   common::result_t<GLuint> create();
-  common::result_t<shader_id_t> compile(const std::string &vert_glsl,
-                                        const std::string &frag_glsl);
+  common::result_t<> compile();
   common::result_t<> link();
   common::result_t<> validate() const;
 
-  common::result_t<GLuint> build(const std::string &vert_glsl,
-                                 const std::string &frag_glsl);
-
-  void attach_to_program();
-
-  shader_id_t _shader_id = {0, 0};
+  const std::string _vert_glsl;
+  const std::string _frag_glsl;
+  std::shared_ptr<shader_profile_t> _profile;
   GLuint _program_id = 0;
 };
 

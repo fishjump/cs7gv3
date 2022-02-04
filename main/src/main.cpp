@@ -1,12 +1,18 @@
 #include <array>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <vector>
 
 #include <common.hpp>
 #include <gl.hpp>
+#include <imgui/backends/imgui_impl_glfw.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+#include <imgui/imgui.h>
+#include <imnotgui/imnotgui.hpp>
 #include <io.hpp>
 #include <program_options.hpp>
+#include <teapot_model.hpp>
 
 namespace {
 
@@ -16,6 +22,11 @@ gl::light_t light = {
     .ambient_color = gl::white,
     .specular_color = glm::vec3(1.0f),
 };
+
+gl::material_t material = {.shininess = 16,
+                           .ambient_color = gl::gray,
+                           .diffuse_color = gl::gray,
+                           .specular_color = gl::gray};
 
 float last_frame = 0.0f;
 
@@ -38,6 +49,8 @@ int main(int argc, char **argv) {
   // glfwSetScrollCallback(window, cs7gv3::scroll_callback);
   // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
+  imnotgui::init(window);
+
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     LOG_ERR("Failed to initialize GLAD");
     return -1;
@@ -48,30 +61,32 @@ int main(int argc, char **argv) {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // create shaders
-  gl::shader_t phong_shader("shader/base.vs", "shader/phong.fs");
-  gl::shader_t gooch_shader("shader/base.vs", "shader/gooch.fs");
+  gl::shader_t phong_shader(
+      "shader/base.vs", "shader/phong.fs",
+      std::make_shared<gl::phong_profile_t>(material, light));
+  gl::shader_t gooch_shader(
+      "shader/base.vs", "shader/gooch.fs",
+      std::make_shared<gl::gooch_profile_t>(material, light));
   gl::shader_t font_shader("shader/font.vs", "shader/font.fs");
+
+  phong_shader.build();
+  gooch_shader.build();
+  font_shader.build();
 
   gl::freetype_gl::init(font_shader, cs7gv3::SCR_WIDTH, cs7gv3::SCR_HEIGHT);
   auto font = gl::freetype_gl::load_font("/Library/Fonts/Arial Unicode.ttf");
 
-  gl::model_t teapot1(
-      "model/teapot.obj",
-      [&](gl::model_t &self) {
-        self.translate({-1.5, 0, 0});
-      },
-      [&](gl::model_t &self) {
-        self.rotate(1, {0, 1, 0});
-      });
+  cs7gv3::teapot_t teapot1({-1.5, 0, 0}, phong_shader, &cs7gv3::camera());
+  cs7gv3::teapot_t teapot2({1.5, 0, 0}, gooch_shader, &cs7gv3::camera());
 
-  gl::model_t teapot2(
-      "model/teapot.obj",
-      [&](gl::model_t &self) {
-        self.translate({1.5, 0, 0});
-      },
-      [&](gl::model_t &self) {
-        self.rotate(1, {0, 1, 0});
-      });
+  teapot1.init();
+  teapot2.init();
+
+  ImGui::StyleColorsDark();
+  ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+  imnotgui::demo_window_t demo_win;
+  imnotgui::register_window(&demo_win);
 
   while (!glfwWindowShouldClose(window)) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -86,54 +101,11 @@ int main(int argc, char **argv) {
     teapot1.loop();
     teapot2.loop();
 
-    {
-      phong_shader.use();
-      gl::phong_profile_t profile;
-      profile.view_pos = cs7gv3::camera().position();
-      profile.material = {.shininess = 16,
-                          .ambient_color = gl::gray,
-                          .diffuse_color = gl::gray,
-                          .specular_color = gl::gray};
-      profile.light = light;
-      phong_shader.set_profile(profile);
-
-      // view/projection transformations
-      glm::mat4 projection = glm::perspective(
-          glm::radians(cs7gv3::camera().zoom()),
-          (float)cs7gv3::SCR_WIDTH / (float)cs7gv3::SCR_HEIGHT, 0.1f, 100.0f);
-
-      phong_shader.set_uniform("projection_uni", projection);
-      phong_shader.set_uniform("view_uni", cs7gv3::camera().view_matrix());
-      phong_shader.set_uniform("model_uni", teapot1.position());
-      teapot1.draw(phong_shader);
-    }
-
-    {
-      gooch_shader.use();
-      gl::gooch_profile_t profile;
-      profile.view_pos = cs7gv3::camera().position();
-      profile.material = {.shininess = 16,
-                          .ambient_color = gl::gray,
-                          .diffuse_color = gl::gray,
-                          .specular_color = gl::gray};
-      profile.light = light;
-      gooch_shader.set_profile(profile);
-
-      // view/projection transformations
-      glm::mat4 projection = glm::perspective(
-          glm::radians(cs7gv3::camera().zoom()),
-          (float)cs7gv3::SCR_WIDTH / (float)cs7gv3::SCR_HEIGHT, 0.1f, 100.0f);
-
-      gooch_shader.set_uniform("projection_uni", projection);
-      gooch_shader.set_uniform("view_uni", cs7gv3::camera().view_matrix());
-      gooch_shader.set_uniform("model_uni", teapot2.position());
-      teapot2.draw(gooch_shader);
-    }
-
     gl::freetype_gl::print(font, font_shader, "This is sample text", 25.0f,
                            25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
     gl::freetype_gl::print(font, font_shader, "(C) LearnOpenGL.com", 540.0f,
                            570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
+    imnotgui::render();
 
     glfwSwapBuffers(window);
     glfwPollEvents();

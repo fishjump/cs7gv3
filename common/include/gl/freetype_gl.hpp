@@ -18,12 +18,11 @@ struct character_t {
 
 using font_t = std::map<GLchar, character_t>;
 
-void init(const shader_t &shader, const size_t win_width,
-          const size_t win_height);
+void init(shader_t &shader, const size_t win_width, const size_t win_height);
 
 std::shared_ptr<font_t> load_font(const std::string &path);
 void print(const std::shared_ptr<gl::freetype_gl::font_t> font_ptr,
-           const shader_t &shader, const std::string &str, float x, float y,
+           shader_t &shader, const std::string &str, float x, float y,
            float scale, const glm::vec3 &color);
 
 } // namespace gl::freetype_gl

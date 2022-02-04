@@ -1,13 +1,15 @@
 #define STB_IMAGE_IMPLEMENTATION
 
+#include <gl/model.hpp>
+
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <boost/filesystem.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <gl.hpp>
+#include <io.hpp>
 #include <stb_image.h>
 
 #include <common.hpp>
-#include <gl/model.hpp>
 
 namespace {
 
@@ -58,53 +60,67 @@ common::result_t<GLuint> texture_from_file(const std::string &file,
 
 } // namespace
 
-gl::model_t::model_t(const std::string &path, const init_func_t init,
-                     const loop_func_t loop, bool gamma_correction)
-    : _gamma_correction(gamma_correction), _position(glm::mat4(1)), _init(init),
-      _loop(loop) {
+gl::model_t::model_t(const std::string &path, const gl::shader_t &shader,
+                     const gl::camera_t *camera, bool gamma_correction)
+    : _gamma_correction(gamma_correction), _camera(camera), _shader(shader),
+      _transform_mat(glm::mat4(1)) {
   auto res = load(path);
   if (res.err != std::nullopt) {
     LOG_ERR(res.err.value());
     return;
   }
-
-  this->init();
 }
 
-const void gl::model_t::init() {
-  if (_init != nullptr) {
-    _init(*this);
-  }
-}
-const void gl::model_t::loop() {
-  if (_loop != nullptr) {
-    _loop(*this);
-  }
+void gl::model_t::init() {}
+void gl::model_t::update() {}
+
+void gl::model_t::loop() {
+  update();
+  update_profile();
+  draw();
 }
 
-const glm::mat4 &gl::model_t::position() const { return _position; }
+const glm::mat4 &gl::model_t::transform_mat() const { return _transform_mat; }
+
+std::shared_ptr<gl::shader_profile_t> gl::model_t::profile() {
+  return _shader.profile();
+}
 
 gl::model_t &gl::model_t::translate(const glm::vec3 &v) {
-  _position = glm::translate(_position, v);
+  _transform_mat = glm::translate(_transform_mat, v);
   return *this;
 }
 
 gl::model_t &gl::model_t::scale(const glm::vec3 &v) {
-  _position = glm::scale(_position, v);
+  _transform_mat = glm::scale(_transform_mat, v);
   return *this;
 }
 
 gl::model_t &gl::model_t::rotate(float degree, const glm::vec3 &axis) {
-  _position = glm::rotate(_position, glm::radians(degree), axis);
+  _transform_mat = glm::rotate(_transform_mat, glm::radians(degree), axis);
   return *this;
 }
 
-void gl::model_t::draw(const shader_t &shader) {
-  shader.use();
+void gl::model_t::draw() {
+  _shader.use();
+  _shader.set_profile();
+
   for (const auto &mesh : _meshes) {
-    mesh.draw(shader);
+    mesh.draw(_shader);
   }
 }
+
+void gl::model_t::update_profile() {
+  _shader.profile()->view_pos = _camera->position();
+
+  _shader.profile()->projection = glm::perspective(
+      glm::radians(_camera->zoom()),
+      (float)cs7gv3::SCR_WIDTH / (float)cs7gv3::SCR_HEIGHT, 0.1f, 100.0f);
+  _shader.profile()->view = _camera->view_matrix();
+  _shader.profile()->model = _transform_mat;
+}
+
+gl::shader_t &gl::model_t::shader() { return _shader; }
 
 common::result_t<> gl::model_t::load(const std::string &path) {
   Assimp::Importer importer;

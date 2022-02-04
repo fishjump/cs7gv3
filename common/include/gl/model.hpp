@@ -6,22 +6,24 @@
 
 #include <assimp/scene.h>
 
+#include "camera.hpp"
 #include "mesh.hpp"
 
 namespace gl {
 
-class model_t final {
+class model_t {
 public:
-  using init_func_t = std::function<void(model_t &self)>;
-  using loop_func_t = std::function<void(model_t &self)>;
+  model_t(const std::string &path, const gl::shader_t &shader,
+          const gl::camera_t *camera, bool gamma_correction = false);
 
-  model_t(const std::string &path, const init_func_t init = nullptr,
-          const loop_func_t loop = nullptr, bool gamma_correction = false);
-  void draw(const shader_t &shader);
+  const glm::mat4 &transform_mat() const;
+  gl::shader_t &shader();
+  std::shared_ptr<gl::shader_profile_t> profile();
 
-  const glm::mat4 &position() const;
-  const void init();
-  const void loop();
+  virtual void init();
+  virtual void update();
+  void loop();
+  void bind_camera(const gl::camera_t *camera) { _camera = camera; }
 
   model_t &translate(const glm::vec3 &v);
   model_t &scale(const glm::vec3 &v);
@@ -29,13 +31,17 @@ public:
 
 private:
   bool _gamma_correction;
-  glm::mat4 _position;
-  init_func_t _init;
-  loop_func_t _loop;
+
+  const gl::camera_t *_camera;
+  gl::shader_t _shader;
+  glm::mat4 _transform_mat;
 
   std::string _dir;
   std::vector<mesh_t> _meshes;
   std::unordered_map<std::string, texture_t> _textures_cache;
+
+  void draw();
+  void update_profile();
 
   common::result_t<> load(const std::string &path);
   void process_node(aiNode *node, const aiScene *scene);

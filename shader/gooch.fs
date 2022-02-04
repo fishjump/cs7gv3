@@ -25,10 +25,10 @@ uniform material_t material;
 uniform light_t light;
 uniform sampler2D texture_diffuse1;
 
-uniform float a = 0.2;
-uniform float b = 0.6;
-uniform vec3 k_blue = vec3(0.0, 0.0, 0.4);
-uniform vec3 k_yellow = vec3(0.4, 0.4, 0.0);
+uniform float a;
+uniform float b;
+uniform vec3 k_blue;
+uniform vec3 k_yellow;
 
 vec3 k_cool_f(vec3 k_d) {
   return k_blue + a * k_d;

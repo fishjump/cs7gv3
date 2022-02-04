@@ -12,7 +12,7 @@ GLuint VAO = 0, VBO = 0;
 
 }
 
-void gl::freetype_gl::init(const shader_t &shader, const size_t win_width,
+void gl::freetype_gl::init(shader_t &shader, const size_t win_width,
                            const size_t win_height) {
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
@@ -83,9 +83,9 @@ gl::freetype_gl::load_font(const std::string &font_path) {
 }
 
 void gl::freetype_gl::print(
-    const std::shared_ptr<gl::freetype_gl::font_t> font_ptr,
-    const shader_t &shader, const std::string &str, float x, float y,
-    float scale, const glm::vec3 &color) {
+    const std::shared_ptr<gl::freetype_gl::font_t> font_ptr, shader_t &shader,
+    const std::string &str, float x, float y, float scale,
+    const glm::vec3 &color) {
 
   shader.use();
   glUniform3fv(glGetUniformLocation(shader.program_id(), "text_color"), 1,
