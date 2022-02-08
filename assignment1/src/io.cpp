@@ -1,18 +1,14 @@
+#include <global.hpp>
 #include <io.hpp>
 
 namespace {
 
-gl::camera_t _camera(glm::vec3(0.0f, 1.0f, 8.0f));
-
 float last_x = cs7gv3::SCR_WIDTH / 2.0f;
 float last_y = cs7gv3::SCR_HEIGHT / 2.0f;
 bool first_mouse = true;
-float _delta_time = 0.0f;
+float _delta_time = 0.1f;
 
 } // namespace
-
-const gl::camera_t &cs7gv3::camera() { return _camera; }
-float_t &cs7gv3::delta_time() { return _delta_time; }
 
 void cs7gv3::process_input(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -20,19 +16,23 @@ void cs7gv3::process_input(GLFWwindow *window) {
   }
 
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    _camera.process_keyboard(gl::camera_movement_t::FORWARD, _delta_time);
+    cs7gv3::global::camera.process_keyboard(
+        cs7gvx_utils::gl::camera_movement_t::FORWARD, _delta_time);
   }
 
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    _camera.process_keyboard(gl::camera_movement_t::BACKWARD, _delta_time);
+    cs7gv3::global::camera.process_keyboard(
+        cs7gvx_utils::gl::camera_movement_t::BACKWARD, _delta_time);
   }
 
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    _camera.process_keyboard(gl::camera_movement_t::LEFT, _delta_time);
+    cs7gv3::global::camera.process_keyboard(
+        cs7gvx_utils::gl::camera_movement_t::LEFT, _delta_time);
   }
 
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    _camera.process_keyboard(gl::camera_movement_t::RIGHT, _delta_time);
+    cs7gv3::global::camera.process_keyboard(
+        cs7gvx_utils::gl::camera_movement_t::RIGHT, _delta_time);
   }
 }
 
@@ -58,10 +58,10 @@ void cs7gv3::mouse_callback(GLFWwindow *window, double x_pos_in,
   last_x = x_pos;
   last_y = y_pos;
 
-  _camera.process_mouse_movement(x_offset, y_offset);
+  cs7gv3::global::camera.process_mouse_movement(x_offset, y_offset);
 }
 
 void cs7gv3::scroll_callback(GLFWwindow *window, double x_offset,
                              double y_offset) {
-  _camera.process_mouse_scroll(static_cast<float>(y_offset));
+  cs7gv3::global::camera.process_mouse_scroll(static_cast<float>(y_offset));
 }

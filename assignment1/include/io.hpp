@@ -1,7 +1,6 @@
-#ifndef CS7GV3_IO_HPP
-#define CS7GV3_IO_HPP
+#pragma once
 
-#include <gl.hpp>
+#include <cs7gvx_utils.hpp>
 
 namespace cs7gv3 {
 
@@ -13,9 +12,4 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void mouse_callback(GLFWwindow *window, double x_pos_in, double y_pos_in);
 void scroll_callback(GLFWwindow *window, double x_offset, double y_offset);
 
-const gl::camera_t &camera();
-float_t &delta_time();
-
 } // namespace cs7gv3
-
-#endif // CS7GV3_IO_HPP
