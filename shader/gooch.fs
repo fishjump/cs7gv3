@@ -16,14 +16,12 @@ struct light_t {
 
 in vec3 frag_pos;
 in vec3 normal;
-in vec2 texture_coordinate;
 
 out vec4 frag_color;
 
 uniform vec3 view_pos;
 uniform material_t material;
 uniform light_t light;
-uniform sampler2D texture_diffuse1;
 
 uniform float a;
 uniform float b;
@@ -44,6 +42,9 @@ void main() {
   vec3 light_direction = normalize(light.position - frag_pos);
   vec3 reflect_direction = reflect(-light_direction, norm);
 
+  // ambient
+  vec3 ambient = light.ambient_color * material.ambient_color;
+
   // diffuse 
   float diff = dot(-light_direction, norm);
   float dot_1_2 = (1.0 + diff) / 2.0;
@@ -56,6 +57,5 @@ void main() {
   float spec = pow(max(dot(view_direction, reflect_direction), 0.0), material.shininess);
   vec3 specular = spec * light.specular_color * material.specular_color;
 
-  vec3 result = diffuse + specular;
-  frag_color = vec4(result, 1.0);
+  frag_color = vec4(ambient + diffuse + specular, 1.0);
 }
