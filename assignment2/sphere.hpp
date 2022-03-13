@@ -37,9 +37,14 @@ in vec3 frag_pos;
 
 uniform vec3 camera_pos;
 uniform samplerCube skybox;
+
 uniform bool use_reflect;
 uniform bool use_refract;
+uniform bool use_chromatic;
+
+uniform float fresnel_pow;
 uniform float refract_ratio;
+uniform vec3 refract_ratio3;
 
 vec3 cal_reflect() {
   vec3 I = normalize(frag_pos - camera_pos);
@@ -50,26 +55,50 @@ vec3 cal_reflect() {
 
 vec3 cal_refract() {
   vec3 I = normalize(frag_pos - camera_pos);
-  vec3 R = refract(I, normalize(normal), refract_ratio);
+  vec3 R = vec3(0.0, 0.0, 0.0);
+  if (use_chromatic) {
+    R = vec3(
+      refract(I, normalize(normal), refract_ratio3.r).r,
+      refract(I, normalize(normal), refract_ratio3.g).g,
+      refract(I, normalize(normal), refract_ratio3.b).b
+    );
+  } else {
+    R = refract(I, normalize(normal), refract_ratio);
+  }
 
   return R;
 }
 
 void main() {
-    int cnt = 0;
     vec4 reflect_res = vec4(0.0, 0.0, 0.0, 0.0);
     vec4 refract_res = vec4(0.0, 0.0, 0.0, 0.0);
+
+    float fresnel = 0.0;
+    if (use_chromatic) {
+      fresnel = ((1.0 - refract_ratio3.g) * (1.0 - refract_ratio3.g)) / ((1.0 + refract_ratio3.g) * (1.0 + refract_ratio3.g));
+    } else {
+      fresnel = ((1.0 - refract_ratio) * (1.0 - refract_ratio)) / ((1.0 + refract_ratio) * (1.0 + refract_ratio));
+    }
+    float ratio = fresnel + (1.0 - fresnel) * pow((1.0 - dot(-frag_pos, normal)), fresnel_pow);
+  
     if (use_reflect) {
       reflect_res = vec4(texture(skybox, cal_reflect()).rgb, 1.0);
-      cnt++;
     }
 
     if (use_refract) {
       refract_res = vec4(texture(skybox, cal_refract()).rgb, 1.0);
-      cnt++;
     }
 
-    frag_color = (reflect_res + refract_res) / cnt;
+    vec3 color = vec3(0.0, 0.0, 0.0);
+    if (use_refract && use_reflect) {
+      color = mix(refract_res.rgb, reflect_res.rgb, ratio);
+    } else if (use_refract) {
+      color = refract_res.rgb;
+    } else {
+      color = reflect_res.rgb;
+    }
+
+    frag_color = vec4(color, 1.0);
 }
 )";
 
@@ -80,9 +109,12 @@ public:
       : figine::core::object_t("model/sphere.off", camera, gamma_correction),
         _init_pos(init_pos) {}
 
+  float fresnel_pow = 1.0f;
   float refract_ratio = 1.0f;
+  glm::vec3 refract_ratio3 = {1.0f, 1.0f, 1.0f};
   bool use_reflect = true;
   bool use_refract = true;
+  bool use_chromatic = true;
 
   void init() override {
     object_t::init();
@@ -124,7 +156,10 @@ public:
     object_t::apply_uniform(shader);
     shader.set_uniform("use_reflect", use_reflect);
     shader.set_uniform("use_refract", use_refract);
+    shader.set_uniform("use_chromatic", use_chromatic);
+    shader.set_uniform("fresnel_pow", fresnel_pow);
     shader.set_uniform("refract_ratio", refract_ratio);
+    shader.set_uniform("refract_ratio3", refract_ratio3);
     shader.set_uniform("camera_pos", camera->position);
   }
 
@@ -154,21 +189,23 @@ extern sphere_t sphere;
 
 class sphere_console_t final : public figine::imnotgui::window_t {
 public:
-  // air
-  float media1 = 1.0f;
-  // water
-  float media2 = 1.33f;
-
   virtual void refresh() final {
     ImGui::Begin("sphere console");
 
     ImGui::Checkbox("use reflect", &sphere.use_reflect);
     ImGui::Checkbox("use refract", &sphere.use_refract);
+    ImGui::Checkbox("use chromatic", &sphere.use_chromatic);
 
     if (sphere.use_refract) {
-      ImGui::InputFloat("media1", &media1, 0.0f, 100.0f);
-      ImGui::InputFloat("media2", &media2, 0.0f, 100.0f);
-      sphere.refract_ratio = media1 / media2;
+      ImGui::SliderFloat("fresnel_pow", &sphere.fresnel_pow, 1.0f, 10.0f);
+
+      if (sphere.use_chromatic) {
+        ImGui::SliderFloat3("refraction ratio", (float *)&sphere.refract_ratio3,
+                            0.0f, 1.0f);
+      } else {
+        ImGui::SliderFloat("refraction ratio", &sphere.refract_ratio, 0.0f,
+                           1.0f);
+      }
     }
 
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",

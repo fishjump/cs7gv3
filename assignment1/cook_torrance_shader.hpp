@@ -118,7 +118,7 @@ void main() {
   // multiply kD by the inverse metalness such that only non-metals 
   // have diffuse lighting, or a linear blend if partly metal (pure metals
   // have no diffuse light).
-  kD *= 1.0 - metallic;	  
+  kD *= 1.0 - metallic;
 
   // scale light by NdotL
   float NdotL = max(dot(N, L), 0.0);        
