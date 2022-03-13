@@ -194,9 +194,9 @@ public:
 
     ImGui::Checkbox("use reflect", &sphere.use_reflect);
     ImGui::Checkbox("use refract", &sphere.use_refract);
-    ImGui::Checkbox("use chromatic", &sphere.use_chromatic);
 
     if (sphere.use_refract) {
+      ImGui::Checkbox("use chromatic", &sphere.use_chromatic);
       ImGui::SliderFloat("fresnel_pow", &sphere.fresnel_pow, 1.0f, 10.0f);
 
       if (sphere.use_chromatic) {
