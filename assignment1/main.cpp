@@ -31,8 +31,8 @@ int main() {
     process_input(window, delta_time);
 
     teapot[0].loop(phong_shader);
-    teapot[1].loop(gooch_shader);
-    teapot[2].loop(cook_torrance_shader);
+    // teapot[1].loop(gooch_shader);
+    // teapot[2].loop(cook_torrance_shader);
 
     figine::imnotgui::render();
 

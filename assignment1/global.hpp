@@ -19,7 +19,7 @@ inline cook_torrance_shader_t cook_torrance_shader;
 inline cook_torrance_console_t cook_torrance_console;
 
 inline teapot_t teapot[] = {
-    teapot_t({-3, 0, 0}, &camera),
+    teapot_t({0, 0, 0}, &camera),
     teapot_t({0, 0, 0}, &camera),
     teapot_t({3, 0, 0}, &camera),
 };

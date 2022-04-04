@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/module/figine/include",
-                "/opt/homebrew/include/*"
+                "/opt/homebrew/include/*",
             ],
             "defines": [],
             "macFrameworkPath": [
